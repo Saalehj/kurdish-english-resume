@@ -1,7 +1,7 @@
 // Configuration
 const CONFIG = {
-    GOOGLE_SHEET_ID: 'YOUR_SHEET_ID_HERE', // Replace with your Sheet ID
-    GOOGLE_API_KEY: 'YOUR_API_KEY_HERE'    // Replace with your API Key
+    GOOGLE_SHEET_ID: '17dd4BsxaWNC91CctpnJAn1H5dRFkrfRxCB5ejSZN_c4',
+    GOOGLE_API_KEY: 'AIzaSyBJZILs4QPDbTAVPLeI9V_x-bLhEsjjD9c'
 };
 
 // Translations
@@ -332,52 +332,67 @@ function goBackToForm() {
 async function saveResume() {
     const data = collectResumeData();
     
-    // Validate required fields
+    // Validate
     if (!data.personal.name || !data.personal.email) {
-        alert(TRANSLATIONS[currentLanguage]['fill-fields']);
+        alert('Please fill required fields');
         return;
     }
     
+    console.log('Trying to save to Google Sheets...');
+    console.log('Sheet ID:', CONFIG.GOOGLE_SHEET_ID);
+    
     try {
-        // Save to Google Sheets if API is configured
-        if (CONFIG.GOOGLE_SHEET_ID && CONFIG.GOOGLE_API_KEY && 
-            CONFIG.GOOGLE_SHEET_ID !== 'YOUR_SHEET_ID_HERE') {
-            
-            const sheetData = [
-                [
-                    new Date().toISOString(),
-                    data.personal.name,
-                    data.personal.email,
-                    data.personal.phone,
-                    data.personal.jobTitle,
-                    data.language,
-                    data.template,
-                    JSON.stringify(data)
-                ]
-            ];
-            
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.GOOGLE_SHEET_ID}/values/Sheet1!A1:append?valueInputOption=USER_ENTERED&key=${CONFIG.GOOGLE_API_KEY}`;
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ values: sheetData })
-            });
-            
-            if (response.ok) {
-                alert(TRANSLATIONS[currentLanguage]['save-success']);
-            } else {
-                throw new Error('Google Sheets API error');
-            }
+        // Prepare data for Google Sheets
+        const rowData = [
+            new Date().toISOString(),
+            data.personal.name,
+            data.personal.email,
+            data.personal.phone || '',
+            data.personal.jobTitle || '',
+            data.language,
+            data.template,
+            JSON.stringify(data)
+        ];
+        
+        // Google Sheets API URL
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.GOOGLE_SHEET_ID}/values/Sheet1!A1:append?valueInputOption=USER_ENTERED&key=${CONFIG.GOOGLE_API_KEY}`;
+        
+        console.log('Sending to:', url);
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                values: [rowData]
+            })
+        });
+        
+        const result = await response.json();
+        console.log('Google Sheets response:', result);
+        
+        if (response.ok) {
+            alert('✅ Resume saved to Google Sheets successfully!');
+            // Also save locally as backup
+            localStorage.setItem('last-saved-resume', JSON.stringify(data));
         } else {
-            // Save to localStorage as fallback
-            localStorage.setItem('resume-data', JSON.stringify(data));
-            throw new Error('Google Sheets not configured');
+            throw new Error(result.error?.message || 'Failed to save');
         }
+        
     } catch (error) {
-        console.log('Saved locally:', data);
-        localStorage.setItem('resume-data', JSON.stringify(data));
-        alert(TRANSLATIONS[currentLanguage]['save-error']);
+        console.error('Error saving to Google Sheets:', error);
+        
+        // Fallback: Save to localStorage
+        const backups = JSON.parse(localStorage.getItem('resume-backups') || '[]');
+        backups.push({
+            ...data,
+            savedAt: new Date().toISOString(),
+            error: error.message
+        });
+        localStorage.setItem('resume-backups', JSON.stringify(backups));
+        
+        alert('⚠️ Saved locally. Google Sheets error: ' + error.message);
     }
 }
 
@@ -414,6 +429,28 @@ function exportPDF() {
     // Save PDF
     doc.save('resume.pdf');
     alert(TRANSLATIONS[currentLanguage]['pdf-success']);
+}
+
+// تابع تست اتصال
+async function testConnection() {
+    try {
+        alert('Testing connection to Google Sheets...');
+        
+        // Simple test: Try to read from sheet
+        const testUrl = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.GOOGLE_SHEET_ID}/values/Sheet1!A1:A1?key=${CONFIG.GOOGLE_API_KEY}`;
+        
+        const response = await fetch(testUrl);
+        
+        if (response.ok) {
+            alert('✅ Connection successful! Google Sheets is ready.');
+            console.log('Connection test passed');
+        } else {
+            const error = await response.json();
+            alert('❌ Connection failed: ' + (error.error?.message || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('❌ Network error: ' + error.message);
+    }
 }
 
 // Event Listeners
