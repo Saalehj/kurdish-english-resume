@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Resume Builder - English & Kurdish</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-file-alt"></i> Resume Builder
+            </a>
+            <div class="navbar-nav ms-auto">
+                <button class="btn btn-outline-light btn-sm mx-1" onclick="setLanguage('en')">
+                    <i class="fas fa-globe-americas"></i> English
+                </button>
+                <button class="btn btn-outline-light btn-sm mx-1" onclick="setLanguage('ku')">
+                    <i class="fas fa-globe-asia"></i> کوردی
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container my-4">
+        <!-- Language Selection -->
+        <div class="card shadow-lg mb-4" id="language-card">
+            <div class="card-body text-center">
+                <h2 class="card-title mb-3">
+                    <i class="fas fa-language text-primary"></i>
+                    <span id="lang-title">Select Your Language</span>
+                </h2>
+                <p class="text-muted mb-4" id="lang-subtitle">
+                    Choose your preferred language to continue
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button class="btn btn-primary btn-lg" onclick="startWithLanguage('en')">
+                        <i class="fas fa-flag-usa"></i> English
+                    </button>
+                    <button class="btn btn-success btn-lg" onclick="startWithLanguage('ku')">
+                        <i class="fas fa-flag"></i> کوردی سۆرانی
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resume Form (Initially Hidden) -->
+        <div class="card shadow-lg d-none" id="resume-form">
+            <div class="card-body">
+                <h3 class="text-center mb-4" id="form-title">
+                    <i class="fas fa-user-edit"></i> Personal Information
+                </h3>
+                
+                <!-- Personal Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" id="name-label">
+                            <i class="fas fa-user"></i> Full Name
+                        </label>
+                        <input type="text" class="form-control" id="fullName" placeholder="">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" id="job-label">
+                            <i class="fas fa-briefcase"></i> Job Title
+                        </label>
+                        <input type="text" class="form-control" id="jobTitle" placeholder="">
+                    </div>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" id="email-label">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" class="form-control" id="email" placeholder="">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" id="phone-label">
+                            <i class="fas fa-phone"></i> Phone
+                        </label>
+                        <input type="tel" class="form-control" id="phone" placeholder="">
+                    </div>
+                </div>
+
+                <!-- Photo Upload -->
+                <div class="mb-4">
+                    <label class="form-label" id="photo-label">
+                        <i class="fas fa-camera"></i> Profile Photo
+                    </label>
+                    <div class="input-group">
+                        <input type="file" class="form-control" id="photoUpload" accept="image/*">
+                        <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('photoUpload').click()">
+                            <i class="fas fa-upload"></i>
+                        </button>
+                    </div>
+                    <div class="mt-2" id="photoPreview"></div>
+                </div>
+
+                <!-- Template Selection -->
+                <div class="mb-4">
+                    <label class="form-label" id="template-label">
+                        <i class="fas fa-palette"></i> Select Template
+                    </label>
+                    <div class="row" id="templates-container">
+                        <!-- Templates will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button class="btn btn-primary btn-lg" onclick="previewResume()">
+                        <i class="fas fa-eye"></i> <span id="preview-btn">Preview</span>
+                    </button>
+                    <button class="btn btn-success btn-lg" onclick="saveResume()">
+                        <i class="fas fa-save"></i> <span id="save-btn">Save to Cloud</span>
+                    </button>
+                    <button class="btn btn-danger btn-lg" onclick="exportPDF()">
+                        <i class="fas fa-file-pdf"></i> <span id="pdf-btn">Export PDF</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="card shadow-lg d-none" id="preview-section">
+            <div class="card-body">
+                <h3 class="text-center mb-4">
+                    <i class="fas fa-file-alt"></i> <span id="preview-title">Resume Preview</span>
+                </h3>
+                <div id="resume-preview" class="p-4 border rounded">
+                    <!-- Resume preview will appear here -->
+                </div>
+                <div class="text-center mt-4">
+                    <button class="btn btn-secondary" onclick="goBackToForm()">
+                        <i class="fas fa-edit"></i> <span id="edit-btn">Edit Again</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-4">
+        <div class="container text-center">
+            <p class="mb-0">
+                <i class="fas fa-heart text-danger"></i> 
+                <span id="footer-text">Free Resume Builder - English & Kurdish | No Installation Required</span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
