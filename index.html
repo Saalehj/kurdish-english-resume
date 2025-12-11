@@ -1,171 +1,292 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Resume Builder - English & Kurdish</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CV Builder Pro - Online Resume Builder</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-file-alt"></i> Resume Builder
-            </a>
-            <div class="navbar-nav ms-auto">
-                <button class="btn btn-outline-light btn-sm mx-1" onclick="setLanguage('en')">
-                    <i class="fas fa-globe-americas"></i> English
-                </button>
-                <button class="btn btn-outline-light btn-sm mx-1" onclick="setLanguage('ku')">
-                    <i class="fas fa-globe-asia"></i> کوردی
-                </button>
-            </div>
+  <div class="app-shell">
+    <!-- سایدبار ثابت -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <i class="fas fa-file-alt"></i>
+          <span>CV Builder Pro</span>
         </div>
-    </nav>
+        <p class="tagline">Create & Manage Professional Resumes</p>
+      </div>
 
-    <!-- Main Container -->
-    <div class="container my-4">
-        <!-- Language Selection -->
-        <div class="card shadow-lg mb-4" id="language-card">
-            <div class="card-body text-center">
-                <h2 class="card-title mb-3">
-                    <i class="fas fa-language text-primary"></i>
-                    <span id="lang-title">Select Your Language</span>
-                </h2>
-                <p class="text-muted mb-4" id="lang-subtitle">
-                    Choose your preferred language to continue
-                </p>
-                <div class="d-flex justify-content-center gap-3">
-                    <button class="btn btn-primary btn-lg" onclick="startWithLanguage('en')">
-                        <i class="fas fa-flag-usa"></i> English
-                    </button>
-                    <button class="btn btn-success btn-lg" onclick="startWithLanguage('ku')">
-                        <i class="fas fa-flag"></i> کوردی سۆرانی
-                    </button>
-                </div>
-            </div>
+      <div class="sidebar-section">
+        <h4><i class="fas fa-cog"></i> Settings</h4>
+        <div class="sidebar-label">
+          <span>Language</span>
+          <select id="languageSelect" class="sidebar-select">
+            <option value="en">English</option>
+            <option value="ku">کوردی</option>
+          </select>
         </div>
-
-        <!-- Resume Form (Initially Hidden) -->
-        <div class="card shadow-lg d-none" id="resume-form">
-            <div class="card-body">
-                <h3 class="text-center mb-4" id="form-title">
-                    <i class="fas fa-user-edit"></i> Personal Information
-                </h3>
-                
-                <!-- Personal Info -->
-                <div class="row mb-4">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label" id="name-label">
-                            <i class="fas fa-user"></i> Full Name
-                        </label>
-                        <input type="text" class="form-control" id="fullName" placeholder="">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label" id="job-label">
-                            <i class="fas fa-briefcase"></i> Job Title
-                        </label>
-                        <input type="text" class="form-control" id="jobTitle" placeholder="">
-                    </div>
-                </div>
-
-                <!-- Contact Info -->
-                <div class="row mb-4">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label" id="email-label">
-                            <i class="fas fa-envelope"></i> Email
-                        </label>
-                        <input type="email" class="form-control" id="email" placeholder="">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label" id="phone-label">
-                            <i class="fas fa-phone"></i> Phone
-                        </label>
-                        <input type="tel" class="form-control" id="phone" placeholder="">
-                    </div>
-                </div>
-
-                <!-- Photo Upload -->
-                <div class="mb-4">
-                    <label class="form-label" id="photo-label">
-                        <i class="fas fa-camera"></i> Profile Photo
-                    </label>
-                    <div class="input-group">
-                        <input type="file" class="form-control" id="photoUpload" accept="image/*">
-                        <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('photoUpload').click()">
-                            <i class="fas fa-upload"></i>
-                        </button>
-                    </div>
-                    <div class="mt-2" id="photoPreview"></div>
-                </div>
-
-                <!-- Template Selection -->
-                <div class="mb-4">
-                    <label class="form-label" id="template-label">
-                        <i class="fas fa-palette"></i> Select Template
-                    </label>
-                    <div class="row" id="templates-container">
-                        <!-- Templates will be loaded here -->
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="d-flex justify-content-center gap-3 mt-4">
-                    <button class="btn btn-primary btn-lg" onclick="previewResume()">
-                        <i class="fas fa-eye"></i> <span id="preview-btn">Preview</span>
-                    </button>
-                    <button class="btn btn-success btn-lg" onclick="saveResume()">
-                        <i class="fas fa-save"></i> <span id="save-btn">Save to Cloud</span>
-                    </button>
-                    <button class="btn btn-danger btn-lg" onclick="exportPDF()">
-                        <i class="fas fa-file-pdf"></i> <span id="pdf-btn">Export PDF</span>
-                    </button>
-                </div>
-            </div>
+        <div class="sidebar-label">
+          <span>Template</span>
+          <select id="templateSelect" class="sidebar-select">
+            <option value="simple">Simple</option>
+            <option value="modern">Modern</option>
+            <option value="professional">Professional</option>
+            <option value="colorful">Colorful</option>
+          </select>
         </div>
-        
-<!-- اضافه کن بعد از دکمه‌های Export -->
-<div class="text-center mt-3">
-    <button class="btn btn-outline-info btn-sm" onclick="testConnection()">
-        <i class="fas fa-plug"></i> Test Google Sheets Connection
-    </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h4><i class="fas fa-plus-circle"></i> Add Sections</h4>
+        <button type="button" id="addEducationBtn" class="sidebar-btn">
+          <i class="fas fa-graduation-cap"></i> Education
+        </button>
+        <button type="button" id="addExperienceBtn" class="sidebar-btn">
+          <i class="fas fa-briefcase"></i> Experience
+        </button>
+        <button type="button" id="addSkillBtn" class="sidebar-btn">
+          <i class="fas fa-star"></i> Skill
+        </button>
+        <button type="button" id="addLanguageBtn" class="sidebar-btn">
+          <i class="fas fa-language"></i> Language
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h4><i class="fas fa-save"></i> Save & Load</h4>
+        <button type="button" id="saveResumeBtn" class="sidebar-btn">
+          <i class="fas fa-save"></i> Save Current
+        </button>
+        <button type="button" id="showSavedBtn" class="sidebar-btn">
+          <i class="fas fa-folder-open"></i> Load Saved
+        </button>
+        <button type="button" id="newResumeBtn" class="sidebar-btn">
+          <i class="fas fa-file"></i> New Resume
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h4><i class="fas fa-file-export"></i> Export Options</h4>
+        <div class="export-options">
+          <button class="export-btn pdf" id="downloadPdfBtn">
+            <i class="fas fa-file-pdf"></i> PDF
+          </button>
+          <button class="export-btn word" id="downloadWordBtn">
+            <i class="fas fa-file-word"></i> Word
+          </button>
+          <button class="export-btn pptx" id="downloadPptxBtn">
+            <i class="fas fa-file-powerpoint"></i> PPT
+          </button>
+        </div>
+        <p class="sidebar-hint">All exports include images</p>
+      </div>
+
+<div class="sidebar-section">
+  <h4><i class="fas fa-save"></i> Auto Save</h4>
+  <!-- دکمه toggle auto-save اینجا توسط جاوااسکریپت اضافه می‌شود -->
 </div>
-        
-        <!-- Preview Section -->
-        <div class="card shadow-lg d-none" id="preview-section">
-            <div class="card-body">
-                <h3 class="text-center mb-4">
-                    <i class="fas fa-file-alt"></i> <span id="preview-title">Resume Preview</span>
-                </h3>
-                <div id="resume-preview" class="p-4 border rounded">
-                    <!-- Resume preview will appear here -->
+
+<div class="sidebar-section">
+  <h4><i class="fas fa-sliders-h"></i> Advanced</h4>
+  <button type="button" id="exportSettingsBtn" class="sidebar-btn">
+    <i class="fas fa-cog"></i> Export Settings
+  </button>
+  <button type="button" id="clearStorageBtn" class="sidebar-btn">
+    <i class="fas fa-trash"></i> Clear Old Data
+  </button>
+</div>
+
+      <div class="sidebar-footer">
+        <p class="version">CV Builder Pro v2.1</p>
+        <p class="autosave-status"><i class="fas fa-sync-alt"></i> Auto-save enabled</p>
+      </div>
+    </aside>
+
+
+    <!-- محتوای اصلی -->
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <h1 class="topbar-title">Professional Resume Builder</h1>
+          <p class="topbar-subtitle">Create, edit, and export professional resumes in multiple formats</p>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" id="resetBtn" class="topbar-btn">
+            <i class="fas fa-redo"></i> Reset Form
+          </button>
+          <button type="button" id="printPreviewBtn" class="topbar-btn">
+            <i class="fas fa-print"></i> Print Preview
+          </button>
+        </div>
+      </header>
+
+      <!-- بخش رزومه‌های ذخیره شده (پنهان به صورت پیش‌فرض) -->
+      <div class="saved-resumes-container" id="savedResumesContainer">
+        <div class="saved-resumes-header">
+          <h2><i class="fas fa-archive"></i> Saved Resumes</h2>
+          <button type="button" id="backToFormBtn" class="topbar-btn">
+            <i class="fas fa-arrow-left"></i> Back to Form
+          </button>
+        </div>
+        <div class="saved-resumes-content" id="savedResumesContent">
+          <!-- محتوای رزومه‌های ذخیره شده اینجا لود می‌شود -->
+        </div>
+      </div>
+
+      <!-- بخش اصلی فرم و پیش‌نمایش -->
+      <div class="main-form-container" id="mainFormContainer">
+        <div class="layout-columns">
+          <!-- فرم در سمت چپ -->
+          <div class="form-column">
+            <div class="form-container card">
+              <h2 id="formTitle"><i class="fas fa-edit"></i> Resume Form</h2>
+              
+              <div class="form-section">
+                <h3><i class="fas fa-user"></i> Personal Information</h3>
+                <div class="two-cols">
+                  <label>
+                    <span id="labelFullName">Full Name</span>
+                    <input type="text" id="fullName" placeholder="John Doe" required>
+                  </label>
+                  <label>
+                    <span id="labelJobTitle">Job Title</span>
+                    <input type="text" id="jobTitle" placeholder="Software Engineer">
+                  </label>
                 </div>
-                <div class="text-center mt-4">
-                    <button class="btn btn-secondary" onclick="goBackToForm()">
-                        <i class="fas fa-edit"></i> <span id="edit-btn">Edit Again</span>
-                    </button>
+                
+                <div class="two-cols">
+                  <label>
+                    <span id="labelPhone">Phone</span>
+                    <input type="text" id="phone" placeholder="+1 (555) 123-4567">
+                  </label>
+                  <label>
+                    <span id="labelEmail">Email</span>
+                    <input type="email" id="email" placeholder="john@example.com">
+                  </label>
                 </div>
+                
+                <div class="photo-upload-section">
+                  <h4><i class="fas fa-camera"></i> Profile Photo</h4>
+                  <div class="photo-upload-container">
+                    <div class="photo-upload-area" id="photoUploadArea">
+                      <i class="fas fa-cloud-upload-alt"></i>
+                      <span>Click to upload or drag & drop</span>
+                      <span class="photo-upload-hint">JPG, PNG up to 2MB</span>
+                      <input type="file" id="photoFileInput" accept="image/*" style="display: none;">
+                    </div>
+                    <div class="photo-url-option">
+                      <span>Or enter image URL:</span>
+                      <input type="text" id="photoUrl" placeholder="https://example.com/photo.jpg">
+                    </div>
+                    <div class="photo-preview" id="photoPreview"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><i class="fas fa-align-left"></i> <span id="labelSummary">Professional Summary</span></h3>
+                <textarea id="summary" rows="4" placeholder="Brief professional summary highlighting your experience, skills, and career objectives..."></textarea>
+              </div>
+
+              <div class="form-section">
+                <div class="section-header">
+                  <h3><i class="fas fa-graduation-cap"></i> <span id="educationTitle">Education</span></h3>
+                  <button type="button" id="addEducationBtnMini" class="mini-btn">
+                    <i class="fas fa-plus"></i> <span id="addEducationLabel">Add Education</span>
+                  </button>
+                </div>
+                <div id="educationList"></div>
+              </div>
+
+              <div class="form-section">
+                <div class="section-header">
+                  <h3><i class="fas fa-briefcase"></i> <span id="experienceTitle">Work Experience</span></h3>
+                  <button type="button" id="addExperienceBtnMini" class="mini-btn">
+                    <i class="fas fa-plus"></i> <span id="addExperienceLabel">Add Experience</span>
+                  </button>
+                </div>
+                <div id="experienceList"></div>
+              </div>
+
+              <div class="form-section">
+                <div class="section-header">
+                  <h3><i class="fas fa-star"></i> <span id="skillsTitle">Skills</span></h3>
+                  <button type="button" id="addSkillBtnMini" class="mini-btn">
+                    <i class="fas fa-plus"></i> <span id="addSkillLabel">Add Skill</span>
+                  </button>
+                </div>
+                <div id="skillsList"></div>
+              </div>
+
+              <div class="form-section">
+                <div class="section-header">
+                  <h3><i class="fas fa-language"></i> <span id="languagesTitle">Languages</span></h3>
+                  <button type="button" id="addLanguageBtnMini" class="mini-btn">
+                    <i class="fas fa-plus"></i> <span id="addLanguageLabel">Add Language</span>
+                  </button>
+                </div>
+                <div id="languagesList"></div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" id="previewFullscreenBtn" class="form-action-btn">
+                  <i class="fas fa-expand"></i> Fullscreen Preview
+                </button>
+                <button type="button" id="saveDraftBtn" class="form-action-btn primary">
+                  <i class="fas fa-save"></i> Save Draft
+                </button>
+              </div>
             </div>
+          </div>
+
+          <!-- پیش‌نمایش در سمت راست -->
+          <div class="preview-column">
+            <div class="preview-container card">
+              <div class="preview-header">
+                <h2><i class="fas fa-eye"></i> Live Preview</h2>
+                <div class="preview-controls">
+                  <span class="preview-hint" id="previewHint">Real-time updates • Click sections to edit</span>
+                  <div class="preview-scale">
+                    <button class="scale-btn" data-scale="0.8">80%</button>
+                    <button class="scale-btn active" data-scale="1">100%</button>
+                    <button class="scale-btn" data-scale="1.2">120%</button>
+                  </div>
+                </div>
+              </div>
+              <div class="preview-wrapper">
+                <div id="resumePreview" class="template-simple"></div>
+              </div>
+              <div class="preview-footer">
+                <p class="preview-footer-hint">
+                  <i class="fas fa-info-circle"></i> 
+                  For best PDF results, use high-quality images and check all sections before exporting.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- مودال فول‌اسکرین -->
+  <div class="fullscreen-modal" id="fullscreenModal">
+    <div class="fullscreen-header">
+      <h3>Fullscreen Preview - Press ESC to exit</h3>
+      <button class="close-fullscreen" id="closeFullscreenBtn">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
+    <div class="fullscreen-content" id="fullscreenPreview"></div>
+  </div>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-4">
-        <div class="container text-center">
-            <p class="mb-0">
-                <i class="fas fa-heart text-danger"></i> 
-                <span id="footer-text">Free Resume Builder - English & Kurdish | No Installation Required</span>
-            </p>
-        </div>
-    </footer>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
