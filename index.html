@@ -6,11 +6,9 @@
   <title>CV Maker Pro Max</title>
   
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
-  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@500&family=Playfair+Display:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -48,9 +46,6 @@
                 <option value="'Roboto', sans-serif">Modern (Roboto)</option>
                 <option value="'Lato', sans-serif">Clean (Lato)</option>
                 <option value="'Merriweather', serif">Elegant (Merriweather)</option>
-                <option value="'Playfair Display', serif">Luxury (Playfair)</option>
-                <option value="'Oswald', sans-serif">Bold (Oswald)</option>
-                <option value="'Montserrat', sans-serif">Geometric (Montserrat)</option>
               </optgroup>
               <optgroup label="Kurdish/Persian Fonts">
                 <option value="'Vazirmatn', sans-serif">Vazirmatn (Standard)</option>
@@ -105,12 +100,31 @@
           <button class="btn btn-export word-btn" onclick="exportWord()">
             <i class="fas fa-file-word"></i> Download Word
           </button>
+
+          <hr>
+
+          <h4 id="lblSaveLoad">Save / Load</h4>
+          <div style="display:flex; gap:10px; flex-wrap: wrap;">
+            <button class="btn btn-outline" onclick="saveProjectData()" style="flex:1; background:#f8f9fa; color:#333;">
+              <i class="fas fa-download"></i> Save
+            </button>
+            
+            <input type="file" id="loadInput" style="display:none" onchange="loadProjectData(this)" accept=".json">
+            <button class="btn btn-outline" onclick="document.getElementById('loadInput').click()" style="flex:1; background:#f8f9fa; color:#333;">
+              <i class="fas fa-upload"></i> Load
+            </button>
+          </div>
+          
+          <button class="btn btn-outline" onclick="resetData()" style="margin-top:10px; background:#ffebee; color:red; border-color:red;">
+            <i class="fas fa-trash"></i> Reset / Clear Form
+          </button>
+
       </div>
     </div>
 
     <div class="preview-panel">
       <div id="resumePreview">
-        </div>
+      </div>
     </div>
 
   </div>
