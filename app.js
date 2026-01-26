@@ -1,7 +1,3 @@
-// ==========================================
-//  CV MAKER APP LOGIC - STABLE
-// ==========================================
-
 const state = {
   lang: 'en',
   template: 'modern',
@@ -10,11 +6,10 @@ const state = {
 };
 
 const labels = {
-  en: { personal: "Personal Info", exp: "Experience", edu: "Education", skill: "Skills", summary: "Summary", contact: "Contact", export: "Export Resume", photo: "Photo", font: "Font Style" },
-  ku: { personal: "زانیاری کەسی", exp: "ئەزموونی کار", edu: "خوێندن", skill: "تواناکان", summary: "پوختە", contact: "پەیوەندی", export: "داگرتنی سی‌وی", photo: "وێنە", font: "جۆری فۆنت" }
+  en: { personal: "Personal Info", exp: "Experience", edu: "Education", skill: "Skills", lang_section: "Languages", summary: "Summary", contact: "Contact", export: "Export Resume", photo: "Photo", font: "Font Style" },
+  ku: { personal: "زانیاری کەسی", exp: "ئەزموونی کار", edu: "خوێندن", skill: "تواناکان", lang_section: "زمانەکان", summary: "پوختە", contact: "پەیوەندی", export: "داگرتنی سی‌وی", photo: "وێنە", font: "جۆری فۆنت" }
 };
 
-// --- CORE UI ---
 function updateUI() {
   state.lang = document.getElementById('languageSelect').value;
   const t = labels[state.lang];
@@ -26,6 +21,7 @@ function updateUI() {
   document.getElementById('btnAddExp').innerText = state.lang === 'en' ? 'Exp' : 'ئەزموون';
   document.getElementById('btnAddEdu').innerText = state.lang === 'en' ? 'Edu' : 'خوێندن';
   document.getElementById('btnAddSkill').innerText = state.lang === 'en' ? 'Skill' : 'توانا';
+  document.getElementById('btnAddLang').innerText = state.lang === 'en' ? 'Lang' : 'زمان';
   document.getElementById('lblExport').innerText = t.export;
 
   renderPreview();
@@ -45,10 +41,7 @@ function toggleSection(id) {
 function handlePhotoUpload(input) {
   if (input.files && input.files[0]) {
     const reader = new FileReader();
-    reader.onload = (e) => { 
-        state.photoBase64 = e.target.result; 
-        renderPreview(); 
-    };
+    reader.onload = (e) => { state.photoBase64 = e.target.result; renderPreview(); };
     reader.readAsDataURL(input.files[0]);
   }
 }
@@ -58,12 +51,15 @@ function addItem(type) {
   const id = Date.now();
   let html = '';
 
-  if (type === 'skill') {
+  if (type === 'skill' || type === 'language') {
+    const placeholder = type === 'skill' ? (state.lang === 'en' ? 'Skill Name' : 'ناوی توانا') : (state.lang === 'en' ? 'Language' : 'زمان');
+    const inputClass = type === 'skill' ? 'inp-skill' : 'inp-lang';
+    
     html = `
       <div class="item-card" id="item-${id}">
         <button class="btn-remove" onclick="removeItem(${id})">X</button>
         <div style="display:flex; gap:5px;">
-          <input type="text" class="inp-skill" placeholder="Skill Name" oninput="renderPreview()" style="flex:2">
+          <input type="text" class="${inputClass}" placeholder="${placeholder}" oninput="renderPreview()" style="flex:2">
           <select class="inp-level" onchange="renderPreview()" style="flex:1">
             <option value="5">5/5</option>
             <option value="4">4/5</option>
@@ -90,25 +86,19 @@ function addItem(type) {
   container.insertAdjacentHTML('beforeend', html);
 }
 
-function removeItem(id) { 
-    const el = document.getElementById(`item-${id}`);
-    if(el) el.remove(); 
-    renderPreview(); 
-}
+function removeItem(id) { document.getElementById(`item-${id}`).remove(); renderPreview(); }
 
-// --- DATA HANDLING ---
 function getData() {
-  const getVal = (id) => {
-      const el = document.getElementById(id);
-      return el ? el.value : '';
-  };
+  const getVal = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
   
   const skills = [];
   document.querySelectorAll('#skillContainer .item-card').forEach(div => {
-    skills.push({
-      name: div.querySelector('.inp-skill').value,
-      level: parseInt(div.querySelector('.inp-level').value)
-    });
+    skills.push({ name: div.querySelector('.inp-skill').value, level: parseInt(div.querySelector('.inp-level').value) });
+  });
+
+  const languages = [];
+  document.querySelectorAll('#languageContainer .item-card').forEach(div => {
+    languages.push({ name: div.querySelector('.inp-lang').value, level: parseInt(div.querySelector('.inp-level').value) });
   });
 
   const getItems = (containerId) => {
@@ -133,12 +123,12 @@ function getData() {
     summary: getVal('summary'),
     photo: state.photoBase64,
     skills: skills,
+    languages: languages,
     exp: getItems('experienceContainer'),
     edu: getItems('educationContainer')
   };
 }
 
-// --- RENDER ---
 function renderSkillVisuals(level, type) {
   if (type === 'bar') {
     return `<div class="skill-bar-container"><div class="skill-bar-fill" style="width:${level*20}%"></div></div>`;
@@ -167,18 +157,13 @@ function renderItems(items, title) {
 }
 
 function renderPreview() {
-  // ذخیره خودکار (با try catch برای جلوگیری از کرش)
   try { autoSave(); } catch(e) {}
-
   const data = getData();
   const t = labels[state.lang];
   const container = document.getElementById('resumePreview');
-  
-  const selectedFont = document.getElementById('fontSelect').value;
-  container.style.fontFamily = selectedFont;
+  container.style.fontFamily = document.getElementById('fontSelect').value;
 
   let html = '';
-
   const sectionEdu = renderItems(data.edu, state.lang === 'en' ? "Education" : "خوێندن");
   const sectionExp = renderItems(data.exp, state.lang === 'en' ? "Experience" : "ئەزموونی کار");
 
@@ -198,7 +183,17 @@ function renderPreview() {
       `).join('')}
     </div>` : '';
 
-  // Template Injection
+  const languagesListHTML = data.languages.length ? `
+    <div class="section-title">${t.lang_section}</div>
+    <div class="skills-list">
+      ${data.languages.map(s => `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+          <span>${s.name}</span>
+          ${renderSkillVisuals(s.level, skillType)}
+        </div>
+      `).join('')}
+    </div>` : '';
+
   if (state.template === 'modern') {
     html = `
       <div class="template-modern">
@@ -206,6 +201,7 @@ function renderPreview() {
           ${data.photo ? `<img src="${data.photo}" class="photo">` : ''}
           <div class="section-title">${t.contact}</div>
           <p style="font-size:13px; line-height:1.6;">${data.phone}<br>${data.email}<br>${data.address}</p>
+          ${languagesListHTML}
         </div>
         <div class="main">
           <h1>${data.fullName}</h1>
@@ -229,7 +225,10 @@ function renderPreview() {
         ${data.summary ? `<div class="section-title">${t.summary}</div><p>${data.summary}</p>` : ''}
         ${sectionEdu}
         ${sectionExp}
-        ${skillsListHTML}
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <div>${skillsListHTML}</div>
+            <div>${languagesListHTML}</div>
+        </div>
       </div>`;
   }
   else if (state.template === 'creative') {
@@ -247,6 +246,7 @@ function renderPreview() {
         ${sectionEdu}
         ${sectionExp}
         ${skillsListHTML}
+        ${languagesListHTML}
       </div>`;
   }
   else if (state.template === 'minimal') {
@@ -263,6 +263,7 @@ function renderPreview() {
         ${sectionEdu}
         ${sectionExp}
         ${skillsListHTML}
+        ${languagesListHTML}
       </div>`;
   }
   else if (state.template === 'bold') {
@@ -279,12 +280,13 @@ function renderPreview() {
             <div class="left-col">
                 <div class="section-title">${t.contact}</div>
                 <div style="margin-bottom:20px; font-size:13px;">${data.phone}<br>${data.email}<br>${data.address}</div>
-                ${skillsListHTML}
+                ${languagesListHTML}
             </div>
             <div class="right-col">
                 ${data.summary ? `<div class="section-title">${t.summary}</div><p>${data.summary}</p>` : ''}
                 ${sectionEdu}
                 ${sectionExp}
+                ${skillsListHTML}
             </div>
         </div>
       </div>`;
@@ -309,6 +311,7 @@ function renderPreview() {
             </div>
             <div style="background:#f9f9f9; padding:10px; border-radius:5px; height:fit-content;">
                 ${skillsListHTML}
+                ${languagesListHTML}
             </div>
         </div>
       </div>`;
@@ -317,10 +320,8 @@ function renderPreview() {
   container.innerHTML = html;
 }
 
-// --- EXPORT ---
 function exportPDF() {
   const element = document.getElementById('resumePreview');
-  // Simple & Stable PDF Export
   const opt = {
     margin: 0,
     filename: 'CV.pdf',
@@ -328,7 +329,12 @@ function exportPDF() {
     html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
-  html2pdf().set(opt).from(element).save();
+  element.style.minHeight = 'unset';
+  element.style.height = 'auto';
+  html2pdf().set(opt).from(element).save().then(() => {
+     element.style.minHeight = '';
+     element.style.height = '';
+  });
 }
 
 function exportWord() {
@@ -348,6 +354,8 @@ function exportWord() {
       ${data.exp.map(i => `<p><b>${i.title}</b>, ${i.org}<br>${i.date}<br>${i.desc}</p>`).join('')}
       ${data.skills.length ? `<h3>${t.skill}</h3>` : ''}
       <ul>${data.skills.map(s => `<li>${s.name} (${s.level}/5)</li>`).join('')}</ul>
+      ${data.languages.length ? `<h3>${t.lang_section}</h3>` : ''}
+      <ul>${data.languages.map(s => `<li>${s.name} (${s.level}/5)</li>`).join('')}</ul>
     </body></html>`;
 
   const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
@@ -356,8 +364,6 @@ function exportWord() {
   link.download = `CV-${data.fullName}.doc`;
   link.click();
 }
-
-// --- SAVE & LOAD & RESET SYSTEM ---
 
 function saveProjectData() {
   try {
@@ -392,15 +398,12 @@ function loadProjectData(input) {
 function populateForm(data) {
   if(!data) return;
   
-  // Clear containers
   document.getElementById('educationContainer').innerHTML = '';
   document.getElementById('experienceContainer').innerHTML = '';
   document.getElementById('skillContainer').innerHTML = '';
+  document.getElementById('languageContainer').innerHTML = '';
   
-  const safeVal = (id, val) => { 
-      const el = document.getElementById(id); 
-      if(el) el.value = val || ''; 
-  };
+  const safeVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val || ''; };
   
   safeVal('fullName', data.fullName);
   safeVal('jobTitle', data.jobTitle);
@@ -408,10 +411,8 @@ function populateForm(data) {
   safeVal('email', data.email);
   safeVal('address', data.address);
   safeVal('summary', data.summary);
-  
   if (data.photo) state.photoBase64 = data.photo;
 
-  // Helpers to add items safely
   const addItemsSafe = (arr, type, fields) => {
       if(arr && Array.isArray(arr)) {
           arr.forEach(item => {
@@ -428,42 +429,27 @@ function populateForm(data) {
       }
   };
 
-  addItemsSafe(data.edu, 'education', [
-      {sel: '.inp-title', key: 'title'}, {sel: '.inp-org', key: 'org'}, 
-      {sel: '.inp-date', key: 'date'}, {sel: '.inp-desc', key: 'desc'}
-  ]);
-  
-  addItemsSafe(data.exp, 'experience', [
-      {sel: '.inp-title', key: 'title'}, {sel: '.inp-org', key: 'org'}, 
-      {sel: '.inp-date', key: 'date'}, {sel: '.inp-desc', key: 'desc'}
-  ]);
-
-  addItemsSafe(data.skills, 'skill', [
-      {sel: '.inp-skill', key: 'name'}, {sel: '.inp-level', key: 'level'}
-  ]);
+  addItemsSafe(data.edu, 'education', [{sel: '.inp-title', key: 'title'}, {sel: '.inp-org', key: 'org'}, {sel: '.inp-date', key: 'date'}, {sel: '.inp-desc', key: 'desc'}]);
+  addItemsSafe(data.exp, 'experience', [{sel: '.inp-title', key: 'title'}, {sel: '.inp-org', key: 'org'}, {sel: '.inp-date', key: 'date'}, {sel: '.inp-desc', key: 'desc'}]);
+  addItemsSafe(data.skills, 'skill', [{sel: '.inp-skill', key: 'name'}, {sel: '.inp-level', key: 'level'}]);
+  addItemsSafe(data.languages, 'language', [{sel: '.inp-lang', key: 'name'}, {sel: '.inp-level', key: 'level'}]);
 
   renderPreview();
 }
 
 function resetData() {
-    if(confirm("Are you sure you want to clear everything?")) {
+    if(confirm("Are you sure?")) {
         localStorage.removeItem('cv_autosave');
         location.reload();
     }
 }
 
-// AUTO SAVE LOGIC
 function autoSave() {
     const data = getData();
     localStorage.setItem('cv_autosave', JSON.stringify(data));
 }
 
-// STARTUP
 window.addEventListener('load', () => {
     const saved = localStorage.getItem('cv_autosave');
-    if(saved) {
-        try { populateForm(JSON.parse(saved)); } catch(e) {}
-    } else {
-        updateUI(); 
-    }
+    if(saved) { try { populateForm(JSON.parse(saved)); } catch(e) {} } else { updateUI(); }
 });
