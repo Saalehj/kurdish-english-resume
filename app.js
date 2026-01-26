@@ -1,7 +1,11 @@
+// ==========================================
+//  CV MAKER APP LOGIC - STABLE
+// ==========================================
+
 const state = {
   lang: 'en',
   template: 'modern',
-  font: "'Segoe UI', sans-serif", // فونت پیش‌فرض
+  font: "'Segoe UI', sans-serif",
   photoBase64: null,
 };
 
@@ -10,6 +14,7 @@ const labels = {
   ku: { personal: "زانیاری کەسی", exp: "ئەزموونی کار", edu: "خوێندن", skill: "تواناکان", summary: "پوختە", contact: "پەیوەندی", export: "داگرتنی سی‌وی", photo: "وێنە", font: "جۆری فۆنت" }
 };
 
+// --- CORE UI ---
 function updateUI() {
   state.lang = document.getElementById('languageSelect').value;
   const t = labels[state.lang];
@@ -22,12 +27,6 @@ function updateUI() {
   document.getElementById('btnAddEdu').innerText = state.lang === 'en' ? 'Edu' : 'خوێندن';
   document.getElementById('btnAddSkill').innerText = state.lang === 'en' ? 'Skill' : 'توانا';
   document.getElementById('lblExport').innerText = t.export;
-
-  // اگر زبان کردی شد و فونت روی انگلیسی بود، فونت را روی وزیر بگذار
-  if (state.lang === 'ku') {
-      // اینجا فونت وزیر را در لیست انتخاب کن
-      // (کاربر می‌تواند دستی عوض کند اما پیش‌فرض بهتر است تغییر کند)
-  }
 
   renderPreview();
 }
@@ -46,7 +45,10 @@ function toggleSection(id) {
 function handlePhotoUpload(input) {
   if (input.files && input.files[0]) {
     const reader = new FileReader();
-    reader.onload = (e) => { state.photoBase64 = e.target.result; renderPreview(); };
+    reader.onload = (e) => { 
+        state.photoBase64 = e.target.result; 
+        renderPreview(); 
+    };
     reader.readAsDataURL(input.files[0]);
   }
 }
@@ -88,10 +90,18 @@ function addItem(type) {
   container.insertAdjacentHTML('beforeend', html);
 }
 
-function removeItem(id) { document.getElementById(`item-${id}`).remove(); renderPreview(); }
+function removeItem(id) { 
+    const el = document.getElementById(`item-${id}`);
+    if(el) el.remove(); 
+    renderPreview(); 
+}
 
+// --- DATA HANDLING ---
 function getData() {
-  const getVal = (id) => document.getElementById(id).value;
+  const getVal = (id) => {
+      const el = document.getElementById(id);
+      return el ? el.value : '';
+  };
   
   const skills = [];
   document.querySelectorAll('#skillContainer .item-card').forEach(div => {
@@ -128,6 +138,7 @@ function getData() {
   };
 }
 
+// --- RENDER ---
 function renderSkillVisuals(level, type) {
   if (type === 'bar') {
     return `<div class="skill-bar-container"><div class="skill-bar-fill" style="width:${level*20}%"></div></div>`;
@@ -156,11 +167,13 @@ function renderItems(items, title) {
 }
 
 function renderPreview() {
+  // ذخیره خودکار (با try catch برای جلوگیری از کرش)
+  try { autoSave(); } catch(e) {}
+
   const data = getData();
   const t = labels[state.lang];
   const container = document.getElementById('resumePreview');
   
-  // اعمال فونت انتخاب شده
   const selectedFont = document.getElementById('fontSelect').value;
   container.style.fontFamily = selectedFont;
 
@@ -185,10 +198,7 @@ function renderPreview() {
       `).join('')}
     </div>` : '';
 
-  // --- TEMPLATES (Same logic as before, just ensuring font inherits) ---
-  // (من کد قالب‌ها رو خلاصه کردم چون تغییری در HTML داخلیشون ندادیم، همون کدهای قبلی کار میکنه)
-  // فقط یک نمونه رو میذارم که ببینی چطور کار میکنه، بقیه کدهای قالب رو از فایل قبلی کپی کن یا اگر فایل قبلی رو داری تغییر نده
-
+  // Template Injection
   if (state.template === 'modern') {
     html = `
       <div class="template-modern">
@@ -253,8 +263,7 @@ function renderPreview() {
         ${sectionEdu}
         ${sectionExp}
         ${skillsListHTML}
-      </div>
-    `;
+      </div>`;
   }
   else if (state.template === 'bold') {
     html = `
@@ -278,8 +287,7 @@ function renderPreview() {
                 ${sectionExp}
             </div>
         </div>
-      </div>
-    `;
+      </div>`;
   }
   else if (state.template === 'compact') {
     html = `
@@ -303,34 +311,24 @@ function renderPreview() {
                 ${skillsListHTML}
             </div>
         </div>
-      </div>
-    `;
+      </div>`;
   }
 
   container.innerHTML = html;
 }
 
-// FIX: Removing min-height before export to prevent blank page
+// --- EXPORT ---
 function exportPDF() {
   const element = document.getElementById('resumePreview');
-  
-  // 1. Temporarily disable strict A4 height
-  element.style.minHeight = 'unset';
-  element.style.height = 'auto';
-
+  // Simple & Stable PDF Export
   const opt = {
     margin: 0,
     filename: 'CV.pdf',
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
+    html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
-  
-  html2pdf().set(opt).from(element).save().then(() => {
-    // 2. Restore A4 height for preview
-    element.style.minHeight = '';
-    element.style.height = '';
-  });
+  html2pdf().set(opt).from(element).save();
 }
 
 function exportWord() {
@@ -338,26 +336,17 @@ function exportWord() {
   const t = labels[state.lang];
   const isRTL = state.lang === 'ku';
 
-  const styles = `
-    body { font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 11pt; }
-    h1 { font-size: 20pt; color: #2c3e50; }
-    .sec { font-weight: bold; border-bottom: 1px solid #ccc; margin-top: 20px; font-size: 14pt; }
-  `;
-
+  const styles = `body { font-family: sans-serif; }`;
   let content = `
     <html ${isRTL ? 'dir="rtl"' : ''}><head><meta charset="utf-8"><style>${styles}</style></head><body>
-      <h1 style="text-align:center">${data.fullName}</h1>
-      <p style="text-align:center">${data.jobTitle}<br>${data.phone} | ${data.email}</p>
-      
-      ${data.summary ? `<div class="sec">${t.summary}</div><p>${data.summary}</p>` : ''}
-      
-      ${data.edu.length ? `<div class="sec">${t.edu}</div>` : ''}
-      ${data.edu.map(i => `<p><b>${i.title}</b>, ${i.org}<br><i>${i.date}</i><br>${i.desc}</p>`).join('')}
-
-      ${data.exp.length ? `<div class="sec">${t.exp}</div>` : ''}
-      ${data.exp.map(i => `<p><b>${i.title}</b>, ${i.org}<br><i>${i.date}</i><br>${i.desc}</p>`).join('')}
-
-      ${data.skills.length ? `<div class="sec">${t.skill}</div>` : ''}
+      <h1>${data.fullName}</h1>
+      <p>${data.jobTitle}<br>${data.phone} | ${data.email}</p>
+      ${data.summary ? `<h3>${t.summary}</h3><p>${data.summary}</p>` : ''}
+      ${data.edu.length ? `<h3>${t.edu}</h3>` : ''}
+      ${data.edu.map(i => `<p><b>${i.title}</b>, ${i.org}<br>${i.date}<br>${i.desc}</p>`).join('')}
+      ${data.exp.length ? `<h3>${t.exp}</h3>` : ''}
+      ${data.exp.map(i => `<p><b>${i.title}</b>, ${i.org}<br>${i.date}<br>${i.desc}</p>`).join('')}
+      ${data.skills.length ? `<h3>${t.skill}</h3>` : ''}
       <ul>${data.skills.map(s => `<li>${s.name} (${s.level}/5)</li>`).join('')}</ul>
     </body></html>`;
 
@@ -368,4 +357,113 @@ function exportWord() {
   link.click();
 }
 
-updateUI();
+// --- SAVE & LOAD & RESET SYSTEM ---
+
+function saveProjectData() {
+  try {
+    const data = getData();
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "CV_Project.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  } catch(e) { alert("Save failed."); }
+}
+
+function loadProjectData(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      populateForm(data);
+      alert("Loaded successfully!");
+    } catch (err) {
+      alert("Error loading file.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function populateForm(data) {
+  if(!data) return;
+  
+  // Clear containers
+  document.getElementById('educationContainer').innerHTML = '';
+  document.getElementById('experienceContainer').innerHTML = '';
+  document.getElementById('skillContainer').innerHTML = '';
+  
+  const safeVal = (id, val) => { 
+      const el = document.getElementById(id); 
+      if(el) el.value = val || ''; 
+  };
+  
+  safeVal('fullName', data.fullName);
+  safeVal('jobTitle', data.jobTitle);
+  safeVal('phone', data.phone);
+  safeVal('email', data.email);
+  safeVal('address', data.address);
+  safeVal('summary', data.summary);
+  
+  if (data.photo) state.photoBase64 = data.photo;
+
+  // Helpers to add items safely
+  const addItemsSafe = (arr, type, fields) => {
+      if(arr && Array.isArray(arr)) {
+          arr.forEach(item => {
+              addItem(type);
+              const container = document.getElementById(`${type}Container`);
+              const card = container.lastElementChild;
+              if(card) {
+                  fields.forEach(f => {
+                      const inp = card.querySelector(f.sel);
+                      if(inp) inp.value = item[f.key] || '';
+                  });
+              }
+          });
+      }
+  };
+
+  addItemsSafe(data.edu, 'education', [
+      {sel: '.inp-title', key: 'title'}, {sel: '.inp-org', key: 'org'}, 
+      {sel: '.inp-date', key: 'date'}, {sel: '.inp-desc', key: 'desc'}
+  ]);
+  
+  addItemsSafe(data.exp, 'experience', [
+      {sel: '.inp-title', key: 'title'}, {sel: '.inp-org', key: 'org'}, 
+      {sel: '.inp-date', key: 'date'}, {sel: '.inp-desc', key: 'desc'}
+  ]);
+
+  addItemsSafe(data.skills, 'skill', [
+      {sel: '.inp-skill', key: 'name'}, {sel: '.inp-level', key: 'level'}
+  ]);
+
+  renderPreview();
+}
+
+function resetData() {
+    if(confirm("Are you sure you want to clear everything?")) {
+        localStorage.removeItem('cv_autosave');
+        location.reload();
+    }
+}
+
+// AUTO SAVE LOGIC
+function autoSave() {
+    const data = getData();
+    localStorage.setItem('cv_autosave', JSON.stringify(data));
+}
+
+// STARTUP
+window.addEventListener('load', () => {
+    const saved = localStorage.getItem('cv_autosave');
+    if(saved) {
+        try { populateForm(JSON.parse(saved)); } catch(e) {}
+    } else {
+        updateUI(); 
+    }
+});
