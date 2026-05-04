@@ -1,138 +1,915 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ku" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CV Maker Pro Max</title>
-  
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@500&family=Playfair+Display:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ronika TV</title>
+    
+    <link rel="icon" href="./AppLogo.jpg" type="image/jpeg">
+    
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#060913">
+    <link rel="apple-touch-icon" href="./AppLogo.jpg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ronika TV">
+
+    <style>
+        :root {
+            --bg-base: #060913;
+            --bg-glass: rgba(20, 25, 40, 0.6);
+            --accent-1: #00bcd4;
+            --accent-2: #8a2be2;
+            --text-main: #ffffff;
+            --text-muted: #8b95a5;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--bg-base);
+            background-image: radial-gradient(circle at 10% 20%, rgba(138, 43, 226, 0.1) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(0, 188, 212, 0.1) 0%, transparent 40%);
+            color: var(--text-main);
+            margin: 0; padding: 0; 
+            height: 100vh; height: 100dvh; 
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* وقتی آیفون در حالت شبیه‌ساز فول‌اسکرین است، بقیه عناصر مخفی می‌شوند */
+        body.pseudo-fs-active .header,
+        body.pseudo-fs-active .channel-sidebar {
+            display: none !important;
+        }
+
+        .header {
+            flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 25px; background: rgba(10, 14, 23, 0.8);
+            backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); z-index: 1000;
+        }
+
+        .brand-container { display: flex; align-items: center; gap: 15px; }
+        .app-logo-img { width: 45px; height: 45px; border-radius: 12px; border: 2px solid var(--accent-1); box-shadow: 0 0 15px rgba(0, 188, 212, 0.3); }
+        .app-title { margin: 0; font-size: 22px; font-weight: 900; background: linear-gradient(to right, var(--accent-1), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .header-buttons { display: flex; gap: 10px; align-items: center; }
+        .modern-btn {
+            background: var(--bg-glass); border: 1px solid var(--border); color: #fff;
+            padding: 8px 16px; border-radius: 20px; font-weight: bold; font-family: inherit;
+            cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px);
+        }
+        .modern-btn:hover { background: var(--accent-2); border-color: var(--accent-2); }
+        
+        /* استایل نشان تعداد کانال‌ها */
+        .stats-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--accent-1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+        }
+        #total-count { color: #fff; }
+
+        .main-content { display: flex; flex-direction: row; flex: 1; overflow: hidden; position: relative; min-height: 0; }
+
+        .player-section { 
+            flex: 1; display: flex; flex-direction: column; background: #000; 
+            position: relative; z-index: 50; height: 100%; min-width: 0;
+        }
+
+        .channel-sidebar {
+            width: 340px; background: var(--bg-glass); border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; z-index: 20; backdrop-filter: blur(10px);
+        }
+
+        .search-container { padding: 15px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .search-input {
+            width: 100%; padding: 12px 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+            border-radius: 12px; color: #fff; font-family: inherit; outline: none; transition: 0.3s;
+        }
+        .search-input:focus { border-color: var(--accent-1); box-shadow: 0 0 10px rgba(0, 188, 212, 0.2); }
+
+        .category-tabs { 
+            display: flex; flex-wrap: nowrap; overflow-x: auto; padding: 10px 15px; gap: 8px; 
+            border-bottom: 1px solid var(--border); flex-shrink: 0; scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .category-tabs::-webkit-scrollbar { display: none; }
+        .tab-btn {
+            background: rgba(0,0,0,0.4); color: var(--text-muted); border: 1px solid transparent;
+            padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 13px; white-space: nowrap; transition: 0.3s;
+        }
+        .tab-btn.active { background: linear-gradient(45deg, var(--accent-1), var(--accent-2)); color: #fff; font-weight: bold; }
+
+        .channel-list { 
+            padding: 15px; overflow-y: auto; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; 
+            padding-bottom: 20px; -webkit-overflow-scrolling: touch;
+        }
+        .channel-list::-webkit-scrollbar { width: 5px; }
+        .channel-list::-webkit-scrollbar-thumb { background: var(--accent-2); border-radius: 10px; }
+
+        .channel-item {
+            display: flex; align-items: center; gap: 12px; padding: 10px 15px;
+            background: rgba(255,255,255,0.03); border-radius: 12px; cursor: pointer; border: 1px solid var(--border); transition: 0.3s;
+            flex-shrink: 0;
+        }
+        .channel-item:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+        .channel-item.active { background: rgba(0, 188, 212, 0.1); border-color: var(--accent-1); box-shadow: inset 0 0 20px rgba(0, 188, 212, 0.1); }
+
+        .channel-logo-wrapper { width: 45px; height: 45px; border-radius: 50%; background: transparent; padding: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+        .channel-logo { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+        .channel-name { font-size: 15px; font-weight: 700; color: #fff; flex: 1; }
+        
+        .fav-btn { background: none; border: none; font-size: 20px; cursor: pointer; transition: 0.3s; }
+        .fav-btn.favorited { text-shadow: 0 0 15px rgba(255, 0, 0, 0.6); transform: scale(1.1); }
+
+        .developer-info {
+            background: rgba(0, 0, 0, 0.4); border-top: 1px solid var(--border);
+            padding: 10px 5px; text-align: center; flex-shrink: 0; font-size: 11px;
+            color: var(--text-muted); display: flex; justify-content: center; align-items: center; gap: 5px;
+            flex-wrap: wrap; direction: ltr;
+        }
+        .developer-info b { color: var(--accent-1); font-weight: bold; }
+        .developer-info a { color: var(--text-main); text-decoration: none; opacity: 0.8; transition: 0.3s; }
+
+        .now-playing-bar {
+            padding: 12px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.7)); 
+            border-bottom: 1px solid var(--accent-1); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .playing-info { display: flex; flex-direction: column; }
+        .now-playing-label { color: var(--accent-1); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        #current-channel-name { color: #fff; font-size: 18px; font-weight: 900; }
+
+        .controls-right { display: flex; gap: 12px; align-items: center; }
+        .icon-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; border-radius: 8px; padding: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+        .icon-btn:hover { background: var(--accent-1); color: #000; }
+        .quality-selector { background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--accent-1); padding: 5px 10px; border-radius: 8px; font-family: inherit; cursor: pointer; }
+
+        #video-wrapper { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; min-height: 0; }
+        
+        /* استایل‌های هوشمند فیت اسکرین (چند حالته) */
+        video { width: 100%; height: 100%; object-fit: contain; outline: none; transition: object-fit 0.3s ease; }
+        
+        video::-webkit-media-controls-fullscreen-button { display: none !important; }
+
+        .loader {
+            display: none; position: absolute; border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--accent-1);
+            border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; z-index: 10;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* شبیه‌ساز فول‌اسکرین ضدضربه برای آیفون */
+        .pseudo-fs {
+            position: fixed !important; inset: 0 !important;
+            width: 100vw !important; height: 100vh !important; height: 100dvh !important;
+            z-index: 2147483647 !important; background: #000 !important;
+            margin: 0 !important; padding: 0 !important; border: none !important;
+        }
+
+        .fs-ui { position: absolute; left: 0; right: 0; padding: 20px; z-index: 2147483647; transition: opacity 0.4s ease; opacity: 0; pointer-events: none; }
+        .fs-ui.active { opacity: 1; pointer-events: auto; }
+
+        .fs-header { top: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); display: flex; justify-content: space-between; align-items: flex-start; }
+        .fs-title-box { background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); padding: 10px 20px; border-radius: 12px; border: 1px solid var(--accent-1); }
+        .fs-title { font-size: 24px; font-weight: 900; color: #fff; margin: 0; }
+        
+        .fs-controls { display: flex; gap: 10px; align-items: center; }
+        .fs-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 12px; border-radius: 8px; font-size: 14px; cursor: pointer; backdrop-filter: blur(5px); transition: 0.3s; }
+        .fs-btn:hover { background: var(--accent-1); color: #000; border-color: var(--accent-1); }
+
+        .fs-footer { bottom: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding-bottom: max(30px, env(safe-area-inset-bottom)); }
+        .fs-channels { display: flex; gap: 15px; overflow-x: auto; padding: 10px; scrollbar-width: none; }
+        .fs-channels::-webkit-scrollbar { display: none; }
+        .fs-channel-card {
+            min-width: 100px; background: rgba(20, 25, 40, 0.8); border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: 0.3s; flex-shrink: 0;
+        }
+        .fs-channel-card.active { border-color: var(--accent-1); background: rgba(0, 188, 212, 0.2); transform: translateY(-5px); }
+        .fs-card-logo { width: 50px; height: 50px; border-radius: 50%; background: transparent; padding: 2px; }
+        .fs-card-name { color: #fff; font-size: 12px; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+        /* باگ فیکس چرخاندن گوشی */
+        @media (max-width: 950px) {
+            .main-content { flex-direction: column; }
+            .player-section { flex: none; height: auto; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+            #video-wrapper { aspect-ratio: 16/9; height: auto; }
+            .channel-sidebar { flex: 1; width: 100%; border-left: none; min-height: 0; }
+            .fs-title { font-size: 18px; }
+            .fs-channel-card { min-width: 80px; padding: 8px; }
+            .fs-card-logo { width: 40px; height: 40px; }
+        }
+
+        /* کادر رنگی دور آیتم‌های انتخاب شده با کنترل تلویزیون */
+        .tab-btn:focus, .channel-item:focus, .fs-channel-card:focus {
+            outline: 3px solid var(--accent-1);
+            transform: scale(1.05);
+            transition: 0.2s;
+        }
+
+/* حالت زوم شده و برش خورده برای سایت‌هایی مثل نگاهستان/نمکده */
+#iframe-player.cropped-mode {
+    position: absolute;
+    /* ابعاد سایت را دستکاری نمی‌کنیم تا پلیر نوار مشکی نسازد */
+    width: 100%; 
+    height: 100%; 
+    top: 0; 
+    left: 0; 
+    
+    /* به مرورگر می‌گوییم دوربین را روی قسمت وسط و بالای سایت تنظیم کند */
+    transform-origin: center top; 
+    
+    /* جادوی نهایی: سایت را یکدست ۱۵ درصد زوم می‌کنیم، و بعد آن را به بالا می‌کشیم */
+    transform: scale(1.17) translateY(-12%); 
+    
+    pointer-events: auto;
+}
+
+
+
+    </style>
 </head>
 <body>
 
-  <div class="app-shell">
-    
-    <div class="editor-panel">
-      <div class="header-logo">
-        <i class="fas fa-file-signature"></i> CV Maker Pro
-      </div>
-
-      <div class="sticky-controls">
-        <div class="add-buttons">
-            <button class="btn btn-outline" onclick="addItem('education')"><i class="fas fa-graduation-cap"></i> <span id="btnAddEdu">Edu</span></button>
-            <button class="btn btn-outline" onclick="addItem('experience')"><i class="fas fa-briefcase"></i> <span id="btnAddExp">Exp</span></button>
-            <button class="btn btn-outline" onclick="addItem('skill')"><i class="fas fa-star"></i> <span id="btnAddSkill">Skill</span></button>
-            <button class="btn btn-outline" onclick="addItem('language')"><i class="fas fa-language"></i> <span id="btnAddLang">Lang</span></button>
+    <div class="header" id="main-header">
+        <div class="brand-container">
+            <img src="./AppLogo.jpg" alt="Ronika Logo" class="app-logo-img">
+            <h2 class="app-title">Ronika TV</h2>
         </div>
-      </div>
-      
-      <div class="scrollable-content">
-          <div class="form-group">
-            <label>Language / زمان</label>
-            <select id="languageSelect" onchange="updateUI()">
-              <option value="en">English</option>
-              <option value="ku">کوردی (سۆرانی)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label id="lblFont">Font Style</label>
-            <select id="fontSelect" onchange="renderPreview()">
-              <optgroup label="English Fonts">
-                <option value="'Segoe UI', sans-serif">Standard (Segoe UI)</option>
-                <option value="'Roboto', sans-serif">Modern (Roboto)</option>
-                <option value="'Lato', sans-serif">Clean (Lato)</option>
-                <option value="'Merriweather', serif">Elegant (Merriweather)</option>
-                <option value="'Playfair Display', serif">Luxury (Playfair)</option>
-                <option value="'Oswald', sans-serif">Bold (Oswald)</option>
-                <option value="'Montserrat', sans-serif">Geometric (Montserrat)</option>
-              </optgroup>
-              <optgroup label="Kurdish/Persian Fonts">
-                <option value="'Vazirmatn', sans-serif">Vazirmatn (Standard)</option>
-                <option value="Tahoma, sans-serif">Tahoma (Classic)</option>
-              </optgroup>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label id="lblTemplate">Template Style</label>
-            <div class="template-grid">
-              <div class="t-opt active" onclick="setTemplate('modern', this)">Modern</div>
-              <div class="t-opt" onclick="setTemplate('elegant', this)">Elegant</div>
-              <div class="t-opt" onclick="setTemplate('creative', this)">Creative</div>
-              <div class="t-opt" onclick="setTemplate('minimal', this)">Minimal</div>
-              <div class="t-opt" onclick="setTemplate('bold', this)">Bold Dark</div>
-              <div class="t-opt" onclick="setTemplate('compact', this)">Compact</div>
+        <div class="header-buttons">
+            <div class="stats-badge">
+                <span id="total-count">0</span> <span id="channel-word">کەناڵ</span>
             </div>
-            <input type="hidden" id="templateSelect" value="modern">
-          </div>
-
-          <hr>
-
-          <button class="accordion-btn" onclick="toggleSection('personalForm')">
-            <i class="fas fa-user"></i> <span id="lblPersonal">Personal Info</span>
-          </button>
-          <div id="personalForm" class="accordion-content open">
-            <div class="form-group"><input type="text" id="fullName" placeholder="Full Name" oninput="renderPreview()"></div>
-            <div class="form-group"><input type="text" id="jobTitle" placeholder="Job Title" oninput="renderPreview()"></div>
-            <div class="form-group"><input type="text" id="phone" placeholder="Phone" oninput="renderPreview()"></div>
-            <div class="form-group"><input type="text" id="email" placeholder="Email" oninput="renderPreview()"></div>
-            <div class="form-group"><input type="text" id="address" placeholder="Address" oninput="renderPreview()"></div>
-            <div class="form-group">
-                <label id="lblPhoto">Photo</label>
-                <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoUpload(this)">
-            </div>
-            <div class="form-group"><textarea id="summary" placeholder="Summary..." rows="3" oninput="renderPreview()"></textarea></div>
-          </div>
-
-          <hr>
-          
-          <div id="educationContainer" class="items-container"></div>
-          <div id="experienceContainer" class="items-container"></div>
-          <div id="skillContainer" class="items-container"></div>
-          <div id="languageContainer" class="items-container"></div>
-
-          <hr>
-
-          <h4 id="lblExport">Export</h4>
-          <button class="btn btn-export pdf-btn" onclick="exportPDF()">
-            <i class="fas fa-file-pdf"></i> Download PDF
-          </button>
-          <button class="btn btn-export word-btn" onclick="exportWord()">
-            <i class="fas fa-file-word"></i> Download Word
-          </button>
-
-          <hr>
-
-          <h4 id="lblSaveLoad">Save / Load</h4>
-          <div style="display:flex; gap:10px; flex-wrap: wrap;">
-            <button class="btn btn-outline" onclick="saveProjectData()" style="flex:1; background:#f8f9fa; color:#333;">
-              <i class="fas fa-download"></i> Save
-            </button>
-            <input type="file" id="loadInput" style="display:none" onchange="loadProjectData(this)" accept=".json">
-            <button class="btn btn-outline" onclick="document.getElementById('loadInput').click()" style="flex:1; background:#f8f9fa; color:#333;">
-              <i class="fas fa-upload"></i> Load
-            </button>
-          </div>
-          <button class="btn btn-outline" onclick="resetData()" style="margin-top:10px; background:#ffebee; color:red; border-color:red;">
-            <i class="fas fa-trash"></i> Reset / Clear
-          </button>
-
-      </div>
+            <button id="install-btn" class="modern-btn install-btn">📥 دابەزاندن</button>
+            <button id="lang-btn" class="modern-btn" onclick="toggleLanguage()">EN</button>
+        </div>
     </div>
 
-    <div class="preview-panel">
-      <div id="resumePreview">
-      </div>
+    <div class="main-content">
+        <div class="player-section">
+            <div class="now-playing-bar" id="normal-playing-bar">
+                <div class="playing-info">
+                    <span class="now-playing-label" id="label-playing">خەریکی بینینی</span>
+                    <span id="current-channel-name">تکایە کەناڵێک هەڵبژێرە</span>
+                </div>
+               <div class="controls-right">
+    <select id="quality-selector" class="quality-selector" onchange="changeQuality(this.value)" style="display:none;"></select>
+    
+    <button id="pip-btn" class="icon-btn" onclick="togglePiP()" title="Picture in Picture">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16.01H3V4.98h18v14.03z"/></svg>
+    </button>
+
+    <button class="icon-btn" onclick="toggleCustomFullscreen()" title="Full Screen">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+    </button>
+</div>
+            </div>
+
+            <div id="video-wrapper">
+                <div id="loader" class="loader"></div>
+                <video id="video" playsinline></video>
+                <iframe id="iframe-player" scrolling="no" style="display:none; width:100%; height:100%; border:none; z-index:5;" allowfullscreen></iframe>
+
+                <div id="click-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; cursor:pointer; display:none;"></div>
+
+                <div id="fs-header" class="fs-ui fs-header">
+                    <div class="fs-title-box">
+                        <p class="now-playing-label" style="margin:0">🔴 Live</p>
+                        <h3 id="fs-channel-title" class="fs-title">Ronika TV</h3>
+                    </div>
+                    <div class="fs-controls">
+                        <select id="fs-quality-selector" class="fs-btn" onchange="changeQuality(this.value)" style="display:none; background:#1c2025;"></select>
+                        <button id="fs-fit-btn" class="fs-btn" onclick="toggleFit()">Aspect: Fit</button>
+                        <button class="fs-btn" style="background:rgba(255,0,0,0.5); border:none;" onclick="toggleCustomFullscreen()">X</button>
+                    </div>
+                </div>
+
+               <div id="fs-footer" class="fs-ui fs-footer">
+    <div class="category-tabs" style="border-bottom: none; margin-bottom: -5px; padding-bottom: 0;">
+        <button class="tab-btn active" onclick="filterChannels('all')">🌐 هەموو</button>
+        <button class="tab-btn" onclick="filterChannels('news')">📰 هەواڵ</button>
+        <button class="tab-btn" onclick="filterChannels('sports')">⚽ وەرزش</button>
+        <button class="tab-btn" onclick="filterChannels('music')">🎵 میوزیک</button>
+        <button class="tab-btn" onclick="filterChannels('movie')">🍿 فیلم</button>
+        <button class="tab-btn" onclick="filterChannels('kids')">👶 منداڵان</button>
+        <button class="tab-btn" onclick="filterChannels('doc')">🌍 دۆکیۆمێنتاری</button>
+        <button class="tab-btn" onclick="filterChannels('ent')">📺 کات بەسەربردن</button>
+        <button class="tab-btn" onclick="filterChannels('fav')">⭐ دڵخواز</button>
+    </div>
+    <div class="fs-channels" id="fs-channels-container"></div>
+</div>
+            </div>
+        </div>
+
+        <div class="channel-sidebar">
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="🔍 گەڕان بۆ کەناڵ..." oninput="searchChannels()">
+            </div>
+            
+            <div class="category-tabs">
+                <button id="tab-fav" class="tab-btn" onclick="filterChannels('fav')">⭐ دڵخواز</button>
+                <button id="tab-all" class="tab-btn active" onclick="filterChannels('all')">🌐 هەموو</button>
+                <button id="tab-news" class="tab-btn" onclick="filterChannels('news')">📰 هەواڵ</button>
+                <button id="tab-sports" class="tab-btn" onclick="filterChannels('sports')">⚽ وەرزش</button>
+                <button id="tab-music" class="tab-btn" onclick="filterChannels('music')">🎵 میوزیک</button>
+                <button id="tab-movie" class="tab-btn" onclick="filterChannels('movie')">🍿 فیلم</button>
+                <button id="tab-kids" class="tab-btn" onclick="filterChannels('kids')">👶 منداڵان</button>
+                <button id="tab-doc" class="tab-btn" onclick="filterChannels('doc')">🌍 دۆکیۆمێنتاری</button>
+                <button id="tab-ent" class="tab-btn" onclick="filterChannels('ent')">📺 کات بەسەربردن</button>
+                
+            </div>
+            
+            <div id="channels-container" class="channel-list"></div>
+
+            <div class="developer-info">
+                👨‍💻 Dev: <b>Saleh Jawar Bedarooni</b> | <a href="mailto:Salehjawhar@gmail.com">Salehjawhar@gmail.com</a>
+            </div>
+        </div>
     </div>
 
-  </div>
+    <script>
+        // دکودر طلایی برای دور زدن ربات‌های گوگل
+        const dict = {
+            '[W]': atob('cm9uaWthdHYuc2FsZWhqYXdoYXIud29ya2Vycy5kZXY='), 
+            '[B]': atob('Ym96enR2LmNvbQ=='), 
+            '[S]': atob('c3RyZWFtbG9jay5uZXQ='), 
+            '[M]': atob('bXlwc3gubmV0'), 
+            '[F]': atob('Zmxhc2htZWRpYWNhc3QuY29t'), 
+            '[L]': atob('bGl2ZXR2c3RyZWFtLmNvLnVr') 
+        };
+        function decodeUrl(url) {
+            if(!url) return "";
+            let res = url;
+            for(let key in dict) { res = res.split(key).join(dict[key]); }
+            return res;
+        }
+        const P = "https://[W]/?url=";
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="app.js"></script>
+        // دیتابیس کانال‌ها - لینک آوا اصلاح شد
+        const myChannels = [
+            { id: "ch1", name: "Rudaw TV", category: "news", logo: "https://raw.githubusercontent.com/picons/picons/2c3e96a983996957dc8e6c33c60ebd65ce98f1e2/build-source/logos/rudaw.dark.svg", url: "https://live.rudaw.net/hls/rudaw-tv/master.m3u8" },
+            { id: "ch2", name: "AVA TV", category: "news", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/AVAMedialogo.jpg/500px-AVAMedialogo.jpg", url: "https://hlspackager.akamaized.net/live/DB/AVA_TV/HLS/AVA_TV.m3u8" },
+            { id: "ch3", name: "Kurdistan TV", category: "news", logo: "https://i.imgur.com/mjQptpc.png", url: "https://5a3ed7a72ed4b.[S]/live/SMIL:myStream.smil/playlist.m3u8" },
+            { id: "ch4", name: "Kurdistan 24", category: "news", logo: "https://i.imgur.com/9QWs2ms.png", url: P + "https://d1x82nydcxndze.cloudfront.net/live/index_720p25.m3u8" },
+            { id: "ch5", name: "MMN News", category: "news", logo: "https://i.postimg.cc/055qJj70/news.png", url: P + "http://mmn.[M]:1935/live/mmnhdnews/playlist.m3u8" },
+{ id: "ch6", name: "Kurdsat News", category: "news", logo: "https://i.imgur.com/F3XRwkt.png", url: "https://hlspackager.akamaized.net/live/DB/KURDSAT_NEWS/HLS/KURDSAT_NEWS.m3u8" },
+            { id: "ch7", name: "BBC Persian", category: "news", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/4/44/BBC_News_Persian_Logo.jpg/250px-BBC_News_Persian_Logo.jpg", url: "https://vs-hls-pushb-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_persian_tv/t=3840/v=pv14/b=5070016/main.m3u8" },
+            { id: "ch8", name: "VOA Persian", category: "news", logo: "https://ir.voanews.com/Content/responsive/VOA/img/webApp/ico-128x128.png", url: "https://voa-ingest.akamaized.net/hls/live/2033876/tvmc07/playlist_1080.m3u8" },
+            { id: "ch9", name: "Iran International", category: "news", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Iran_International_logo_2021.svg/500px-Iran_International_logo_2021.svg.png", url: "https://dev-live.[L]/LS-63503-4/chunklist_b1196000.m3u8" },
+            { id: "ch10", name: "Waar TV", category: "ent", logo: "https://i.imgur.com/rK0y02d.png", url: "https://live.kwikmotion.com/waarmedialive/waarmedia.smil/waarmediapublish/waarmedia_source/chunks.m3u8" },
+            { id: "ch11", name: "Al Jazeera", category: "news", logo: "https://upload.wikimedia.org/wikipedia/fr/thumb/0/0f/Al_Jazeera.svg/langfr-250px-Al_Jazeera.svg.png", url: P + "https://live-hls-web-aja-fa.thehlive.com/AJA/index.m3u8" },
+           { id: "ch12", name: "Al Arabiya", category: "news", logo: "https://shahid.mbc.net/mediaObject/a4c125db-ede8-4970-9eed-963948c78651?height=auto&width=512&croppingPoint=&version=1&type=png", url: P + "https://live.alarabiya.net/alarabiapublish/alarabiya.smil/alarabiapublish/alarabiya_1080p/chunks.m3u8" },
+            { id: "ch13", name: "Al Jazeera Mubasher", category: "news", logo: "https://upload.wikimedia.org/wikipedia/de/2/29/Aljazeera_Mubasher.png", url: P + "https://live-hls-web-ajm.getaj.net/AJM/index.m3u8" },
+
+
+
+            { id: "ch14", name: "MBC Persia", category: "ent", logo: "https://static.wikia.nocookie.net/logopedia/images/a/ad/MBC_Persia_2020.png", url: "https://hls.mbcpersia.live/hls/stream.m3u8" },
+
+            { id: "ch15", name: "Persiana Sports", category: "sports", logo: "https://www.persianity.com/thumb.php?src=https://www.irtv.website/index_files/channels/persianasporttv.png&w=300&h=150", url: "https://pepsi3.abntv.live/hls/psp1.m3u8" },
+            { id: "ch16", name: "Persiana Sports 2", category: "sports", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHG3C8VMU0y2nuw7OdIdWhlCH2_YRqkSZCziZiPkQyNqZBfXmhFJmxU49F&s=10", url: "https://pepsi.abntv.live/hls/4spstream.m3u8" },
+            { id: "ch17", name: "Persiana Sports 3", category: "sports", logo: "https://www.aparatchi.com/images/chanells-logo/persiana/persianasports3.svg", url: "https://pepsi3.abntv.live/hls/psp3.m3u8" },
+            { id: "ch18", name: "Persiana Sports 4", category: "sports", logo: "https://www.aparatchi.com/images/chanells-logo/persiana/persianasports4.svg", url: "https://pepsi4.abntv.live/hls/psp4.m3u8" },
+            { id: "ch19", name: "NRT Sport", category: "sports", logo: "https://mixmedia.tv/wp-content/uploads/2022/08/nrt-sport.png", url: "https://live20.[B]/giatv/giatv-NRT-SPORT/NRT-SPORT/chunks.m3u8" },
+            { id: "ch20", name: "IRIB TV3", category: "sports", logo: "https://raw.githubusercontent.com/picons/picons/refs/heads/master/build-source/logos/iribtv3.default.svg", url: P + "https://live-azd1102.telewebion.ir/ek/tv3/live/1080p/index.m3u8" },
+            { id: "ch21", name: "IRIB Varzesh", category: "sports", logo: "https://upload.wikimedia.org/wikipedia/fa/thumb/f/f5/Iribvarzesh2022.png/960px-Iribvarzesh2022.png", url: P + "https://live-azd1102.telewebion.ir/ek/varzesh/live/1080p/index.m3u8" },
+            { id: "ch22", name: "MMN Sport", category: "sports", logo: "https://i.postimg.cc/8NG9hZMg/MMNSPORT.png", url: P + "http://mmn.[M]:1935/live/mmnhdsport/playlist.m3u8" },
+            { id: "ch23", name: "Gewhar Sport", category: "sports", logo: "https://i.pinimg.com/1200x/dd/4f/c9/dd4fc950d2e62eca0c7f2e23e19affc3.jpg", url: "https://cdn.karwan.tv/gewher-sport/index.m3u8" },
+            { id: "ch24", name: "Turkmenistan Sport", category: "sports", logo: "https://turkmentv.gov.tm/video_turkmen_sport.jpg", url: P + "https://alpha.tv.online.tm/legacyhls/ch004_720/index.m3u8" },
+            { id: "ch25", name: "Setanta Sport 2", category: "sports", logo: "https://setantasports.com/wp-content/uploads/2025/03/logoyosat.png", url: P + "http://s8.rafail1982.uz/1264/tracks-v1a1/mono.m3u8" },
+    	   { id: "ch26", name: "Alkass One", category: "sports", logo: "https://i.imgur.com/10mmlha.png", url: P + "https://liveeu-gcp.alkassdigital.net/alkass1-p/main.m3u8" },
+           { id: "ch27", name: "Alkass Two", category: "sports", logo: "https://i.imgur.com/8w61kFX.png", url: P + "https://liveeu-gcp.alkassdigital.net/alkass2-p/main.m3u8" },
+           { id: "ch28", name: "Alkass Three", category: "sports", logo: "https://i.imgur.com/d57BdFh.png", url: P + "https://liveeu-gcp.alkassdigital.net/alkass3-p/main.m3u8" },
+            { id: "ch29", name: "1 TV Georgia Sport", category: "sports", logo: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Pirveli_Arkhi_Logo_2022.svg", url: P + "https://tv.cdn.xsg.ge/gpb-2tv/tracks-v1a1/mono.m3u8" },
+           { id: "ch30", name: "Sporty TV", category: "sports", logo: "https://i.imgur.com/Wz5bQKx.jpeg", url: P + "https://dash2.antik.sk/live/sporty_tv/index.m3u8" },
+			{ id: "ch87", name: "AFRICASPORT", category: "sports", logo: "https://i0.wp.com/africa24tv.com/wp-content/uploads/2023/12/LOGO-AFRICASPORT-4-HD-sans-fond.png", url: P + "https://africa24.vedge.infomaniak.com/livecast/ik:africa24sport/manifest.m3u8" },
+
+            { id: "ch31", name: "Afarin Baxcha", category: "kids", logo: "https://i.postimg.cc/MTy616mk/BAXCHA.png", url: P + "http://afarintv2.[F]:1935/afarinTV/livestream/playlist.m3u8" },
+            { id: "ch32", name: "Afarin Kids", category: "kids", logo: "https://i.postimg.cc/V6yMYNk2/AKID.png", url: P + "http://afarintv.flashmediacast.com:1935/afarinTV/livestream/playlist.m3u8" },
+            { id: "ch33", name: "Zarok TV", category: "kids", logo: "https://zindikurmanci.zaroktv.com.tr/logo", url: P + "https://zindisorani.zaroktv.com.tr/hls/stream.m3u8#e06cb29ded969cd847cb492441872b58dbb88d66cd0452739ba54d471cc2574e" },
+            { id: "ch34", name: "MMN Kids", category: "kids", logo: "https://i.postimg.cc/BnD7CGnF/mmnkid.png", url: P + "http://mmn.[M]:1935/live/mmnhdkids/playlist.m3u8" },
+            { id: "ch35", name: "Persiana Junior", category: "kids", logo: "https://www.persianity.com/thumb.php?src=https://www.irtv.website/index_files/channels/persianajuniurtv.png&w=300&h=150", url: "https://junhls.persiana.live/hls/stream.m3u8" },
+            { id: "ch36", name: "BBC Kids", category: "kids", logo: "https://upload.wikimedia.org/wikipedia/commons/f/fe/BBC_Kids_Australia.png", url: "https://dmr1h4skdal9h.cloudfront.net/3000.m3u8" },
+            { id: "ch37", name: "Kartoon Channel", category: "kids", logo: "https://www.kartoonchannel.com/themes/custom/gnb/kartoon_channel/logo.png", url: "https://d2z0ysa6dgxhlc.cloudfront.net/kchan_720p_high.m3u8" },
+            { id: "ch38", name: "Kidco", category: "kids", logo: "https://i.postimg.cc/37q1knCP/KIDCO.png", url: P + "http://avrstream.com:1935/live/kidcohd/playlist.m3u8" },
+            { id: "ch39", name: "Baby Shark", category: "kids", logo: "https://cdn-bgp.bluestacks.com/BGP/us/gametiles_kr.co.smartstudy.pinkfongtv_android_googlemarket.jpg", url: P + "https://newidco-babysharktv-1-us.roku.wurl.tv/playlist.m3u8" },
+            { id: "ch40", name: "Roya Kids Original", category: "kids", logo: "https://royakids.tv/gallery/logo1.png", url: P + "https://playlist.fasttvcdn.com/pl/ptllxjd03j6g9oxxjdfapg/roya-kids/playlist/1.m3u8" },
+            { id: "ch41", name: "Roya Kids 2", category: "kids", logo: "https://royakids.tv/introduction/logos.png", url: P + "https://playlist.fasttvcdn.com/pl/ptllxjd03j6g9oxxjdfapg/roya-kids/playlist/1.m3u8" },
+	    { id: "ch42", name: "Duck TV", category: "kids", logo: "https://www.ducktv.tv/wp-content/themes/ducktv/dist/img/brand-2022.svg", url: P + "https://dash2.antik.sk/live/duck_tv/index.m3u8" },
+            { id: "ch43", name: "Ketnet Junior", category: "kids", logo: "https://i.imgur.com/eDYaphB.png", url: P + "https://virtch.vrtcdn.be/v1/channel/KETNET_JUNIOR_PROD_HLS/ketnet_junior_prod_hls-hls/6.m3u8" },
+            { id: "ch44", name: "Gewher Kids", category: "kids", logo: "https://logopond.com/logos/b683ab7538c677bf1bc93848a9545644.png", url: P + "https://cdn.karwan.tv/gewher-kids/tracks-v1a1/mono.m3u8" },
+			{ id: "ch102", name: "Gewher Kids", category: "kids", logo: "https://upload.wikimedia.org/wikipedia/fa/thumb/6/67/POOYA_tv_2.svg/960px-POOYA_tv_2.svg.png", url: P + "https://live-azd1104.telewebion.ir/ek/pooya/live/1080p/index.m3u8" },
+			{ id: "ch103", name: "EBS Kids", category: "kids", logo: "https://i.imgur.com/62oo8Bx.png", url: P + "https://ebsonair.ebs.co.kr/ebsufamilypc/familypc1m/playlist.m3u8" },
+			{ id: "ch104", name: "Kids Pang", category: "kids", logo: "https://i.imgur.com/mhAAIa2.png", url: P + "https://newidco-kidspangtv-1-us.roku.wurl.tv/playlist.m3u8" },
+			{ id: "ch105", name: "ZooMoo", category: "kids", logo: "https://i.imgur.com/ciTJrnl.png", url: P + "https://zoomoo-samsungau.amagi.tv/playlist.m3u8" },
+
+
+            { id: "ch45", name: "MMN Movie", category: "movie", logo: "https://i.postimg.cc/7x19m9wp/MMNM.png", url: P + "http://mmn.[M]:1935/live/mmnhdmovies/playlist.m3u8" },
+            { id: "ch46", name: "MMN Action", category: "movie", logo: "https://i.postimg.cc/1myj1tH7/MMNACT.png", url: P + "http://mmn.[M]:1935/live/mmnhdaction/playlist.m3u8" },
+            { id: "ch47", name: "Barin Movies", category: "movie", logo: "https://i.postimg.cc/gzZc6gR6/Barinm.png", url: P + "http://baskhd.ddns.net:40/live//barinmovieSHD/mono.m3u8" },
+            { id: "ch48", name: "Bnar Movie", category: "movie", logo: "https://i.postimg.cc/1yGh2Bc1/bnarmov.png", url: P + "http://baskhd.ddns.net:40/live//bnarmovies/.bnartvhdsestmok.m3u8" },
+            { id: "ch49", name: "Persiana Cinema", category: "movie", logo: "https://www.persianity.com/thumb.php?w=900&h=506&src=https://www.irtv.website/index_files/channels/persianacinematv.png", url: P + "https://cinehls.persiana.live/hls/stream.m3u8" },
+            { id: "ch50", name: "Gulf Movies", category: "movie", logo: "https://i.ibb.co/mVhnqvD6/431751804-940025923971795-3202834460386811661-n.jpg", url: "https://stream.cisk.tech/gulfmovie/index.m3u8" },
+			  { id: "ch81", name: "IFILM", category: "movie", logo: "https://upload.wikimedia.org/wikipedia/commons/b/b9/IFILM.png", url: P + "https://live.presstv.ir/hls/ifilmfa_4_482/index.m3u8" },
+            { id: "ch51", name: "Infinity TV", category: "movie", logo: "https://i.postimg.cc/CYh5Hjwq/infinity.png", url: "https://cdn.karwan.tv/infinity-tv/tracks-v1a1/mono.m3u8" },
+            { id: "ch52", name: "MMN Show", category: "movie", logo: "https://i.postimg.cc/k9dpmV2J/MMNSHOW.png", url: P + "http://mmn.[M]:1935/live/mmnhddshow/playlist.m3u8" },
+            { id: "ch53", name: "Persiana Plus", category: "movie", logo: "https://www.diycraftsguide.com/uploads/tv_image/persiana-plus.jpg", url: P + "https://euhls.persiana.live/hls/stream.m3u8" },
+            { id: "ch54", name: "Cinex TV", category: "movie", logo: "https://www.aparatchi.com/images/chanells-logo/cinex.svg", url: P + "https://gcinemahls.wns.live/hls/stream.m3u8" },
+            { id: "ch55", name: "ICC+", category: "movie", logo: "https://i.imgur.com/hnplMlk.png", url: P + "https://icchls.wns.live/hls/stream.m3u8" },
+            { id: "ch56", name: "Onyx TV", category: "movie", logo: "https://i.imgur.com/gXRIAw4.png", url: P + "https://ca-rt.onetv.app/gemonyx/index-0.m3u8?token=onetv202" },
+            { id: "ch57", name: "Gem Film", category: "movie", logo: "https://i.imgur.com/nrFz3LU.png", url: P + "https://ca-rt.onetv.app/gemfilm/index-0.m3u8?token=onetv202" },
+            { id: "ch58", name: "Gem Drama", category: "movie", logo: "https://i.imgur.com/k2pGyRH.png", url: P + "https://ca-rt.onetv.app/gemdrama/index-0.m3u8?token=onetv202" },
+
+
+
+
+            { id: "ch59", name: "MMN Doc", category: "doc", logo: "https://karwan.tv/wp-content/uploads/mmn-tv-528x297.png", url: P + "http://mmn.[M]:1935/live/mmnhddocumentary/playlist.m3u8" },
+            { id: "ch60", name: "Persiana science", category: "doc", logo: "https://images.persianagroup.cloud/channels/smallThumbnail/persiana-science.jpg?04", url: P + "https://scihls.persiana.live/hls/stream.m3u8" },
+            { id: "ch61", name: "TravelXP", category: "doc", logo: "https://cdn.broadbandtvnews.com/wp-content/uploads/2020/05/14111822/Travelxp-logo_4K-HDR.jpg", url: P + "https://travelxp-travelxp-1-eu.rakuten.wurl.tv/playlist.m3u8" },
+            { id: "ch62", name: "Aljazeera Doc", category: "doc", logo: "https://upload.wikimedia.org/wikipedia/ar/e/e6/Al_Jazeera_Doc.png", url: P + "https://live-hls-web-ajd.getaj.net/AJD/index.m3u8" },
+            { id: "ch63", name: "Wild Earth", category: "doc", logo: "https://epg.pw/media/images/epg/2025/08/26/20250826040212488525_53.png", url: P + "https://wildearth-plex.amagi.tv/masterR1080p.m3u8" },
+            { id: "ch64", name: "Go2Travel", category: "doc", logo: "https://dcassetcdn.com/design_img/629735/215263/215263_4069089_629735_image.png", url: P + "https://go2thls.wns.live/hls/stream.m3u8" },
+
+
+            { id: "ch65", name: "Radio Javan TV", category: "music", logo: "https://www.diycraftsguide.com/uploads/tv_image/radio-javan-tv.jpg", url: P + "https://rjtvhls.wns.live/hls/stream.m3u8" },
+            { id: "ch66", name: "PMC Royal", category: "music", logo: "https://www.parsatv.com/index_files/channels/pmcroyale.png", url: P + "https://pmcrohls.wns.live/hls/stream.m3u8" },
+            { id: "ch67", name: "Gem Mifa", category: "music", logo: "https://i.imgur.com/qlI7o7V.png", url: P + "https://ca-rt.onetv.app/gemmifa/index-0.m3u8?token=onetv202" },
+            { id: "ch68", name: "Persiana Music", category: "music", logo: "https://i.imgur.com/SHxxi5I.png", url: P + "https://musichls.persiana.live/hls/stream.m3u8" },
+           { id: "ch69", name: "Navahang", category: "music", logo: "https://i.imgur.com/YteKXJy.png", url: P + "https://hls.navahang.live/hls/stream.m3u8" },
+           { id: "ch70", name: "Avang Music", category: "music", logo: "https://i.imgur.com/3I1n7fO.png", url: P + "https://hls.avang.live/hls/stream.m3u8" },
+            { id: "ch71", name: "4 Kurd", category: "music", logo: "https://www.aparatchi.com/images/chanells-logo/4kurd.svg", url: P + "https://4kuhls.persiana.live/hls/stream.m3u8" },
+           { id: "ch72", name: "MMN Clip", category: "music", logo: "https://i.postimg.cc/k9dpmV2J/MMNSHOW.png", url: P + "http://mmn.mypsx.net:1935/live/mmnhdclip/chunklist.m3u8" },
+            { id: "ch73", name: "MMN Music", category: "music", logo: "https://i.postimg.cc/k9dpmV2J/MMNSHOW.png", url: P + "http://mmn.[M]:1935/live/mmnhdclasicmusical/chunklist_w463726670.m3u8" },
+            { id: "ch74", name: "TRT Muzik", category: "music", logo: "https://i.imgur.com/JgUzRH8.png", url: "https://tv-trtmuzik.medya.trt.com.tr/master.m3u8" },
+	    { id: "ch75", name: "TRT Avaz", category: "music", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/TRT_Avaz_logo.svg/960px-TRT_Avaz_logo.svg.png", url: "https://tv-trtavaz.medya.trt.com.tr/master.m3u8" },
+
+
+
+            { id: "ch76", name: "Bnar HD", category: "ent", logo: "https://i.postimg.cc/FrDpZwMT/BNAR.jpg", url: P + "http://baskhd.ddns.net:40/live/bnar4k/mono.m3u8" },
+            { id: "ch77", name: "Avar TV", category: "ent", logo: "https://i.postimg.cc/PHF0gvx8/AVAR.png", url: P + "http://avrstream.com:1935/live/AvarTv/playlist.m3u8" },
+            { id: "ch78", name: "Shna TV", category: "ent", logo: "https://i.postimg.cc/JhP1t1sw-/shna.png", url: P + "http://shnatv.ddns.net:1935/live/shnatv/playlist.m3u8" },
+            { id: "ch79", name: "TRT Kurdi", category: "ent", logo: "https://i.postimg.cc/Skh5bzhg/TRT.png", url: P + "https://tv-trtkurdi.medya.trt.com.tr/master_720.m3u8" },
+            { id: "ch80", name: "IRIB Nasim", category: "ent", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Nasim_TV_logo.svg/1920px-Nasim_TV_logo.svg.png", url: P + "https://live-azd1105.telewebion.ir/ek/nasim/live/1080p/index.m3u8" },
+            { id: "ch82", name: "IRIB TV1", category: "ent", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/IRIBTV1.svg/960px-IRIBTV1.svg.png", url: P + "https://live-azd1104.telewebion.ir/ek/tv1/live/1080p/index.m3u8" },
+            { id: "ch83", name: "IRIB TV2", category: "ent", logo: "https://upload.wikimedia.org/wikipedia/commons/3/36/%D8%B4%D8%A8%DA%A9%D9%87_%D8%AF%D9%88_tv2.png", url: P + "https://live-azd1103.telewebion.ir/ek/tv2/live/1080p/index.m3u8" },
+            { id: "ch101", name: "IRIB TV4", category: "ent", logo: "https://upload.wikimedia.org/wikipedia/commons/f/fd/IRIB_TV4_logo.svg", url: P + "https://live-azd1104.telewebion.ir/ek/tv4/live/576p/index.m3u8" },
+            { id: "ch84", name: "IRIB Mostanad", category: "doc", logo: "https://upload.wikimedia.org/wikipedia/fa/8/89/Mostanad-tv.png", url: P + "https://live-azd1104.telewebion.ir/ek/mostanad/live/1080p/index.m3u8" },
+            { id: "ch85", name: "IRINN", category: "news", logo: "https://www.frocus.net/images/logotv/original/IRINN.jpg", url: P + "https://live-azd1104.telewebion.ir/ek/irinn/live/1080p/index.m3u8" },
+            { id: "ch86", name: "TRT 1", category: "ent", logo: "https://www.trt1.com.tr/assets/svg/trt1-red-logo.svg", url: P + "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8" },
+            { id: "ch88", name: "TRT World", category: "news", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/TRT_World.svg/500px-TRT_World.svg.png", url: P + "https://tv-trtworld.medya.trt.com.tr/master.m3u8" },
+            { id: "ch89", name: "ATV", category: "ent", logo: "https://iatv.tmgrup.com.tr/site/v2/i/atv-logo.png", url: P + "https://rnttwmjcin.turknet.ercdn.net/lcpmvefbyo/atv/atv_1080p.m3u8" },
+            { id: "ch90", name: "Kanal 7", category: "ent", logo: "https://cdn.kanal7.com/kanal7/wp-content/themes/kanal7/v2/images/kanal7-logo.svg", url: P + "https://yurhnwtpys.turknet.ercdn.net/cvmbjbpmdx/kanal7/kanal7_1080p.m3u8" },
+            { id: "ch91", name: "Beyaz Tv", category: "ent", logo: "https://beyaztv.com.tr/images/logo.png", url: P + "https://beyaztv-live.daioncdn.net/beyaztv/beyaztv_1080p.m3u8" },
+            { id: "ch92", name: "Haber Türk", category: "news", logo: "https://www.haberturk.com/images/common/logo/svg/haberturk-logo.svg", url: P + "https://rmtftbjlne.turknet.ercdn.net/bpeytmnqyp/haberturktv/haberturktv_1080p.m3u8" },
+            { id: "ch93", name: "Kanal D", category: "ent", logo: "https://i.imgur.com/9o1atM6.png", url: P + "https://stream1.kanald.ro/iphone/knd-live.m3u8" },
+
+
+            { id: "ch94", name: "Gem TV", category: "ent", logo: "https://gemgroup.tv/assets/images/channels/icon_16.png", url: P + "https://ca-rt.onetv.app/gem/index-0.m3u8?token=onetv202" },
+            { id: "ch95", name: "Gem TV+", category: "ent", logo: "https://gemgroup.tv/assets/images/channels/icon_17.png", url: P + "https://ca-rt.onetv.app/gemtvplus/index-0.m3u8?token=onetv202" },
+            { id: "ch96", name: "Gem Series", category: "ent", logo: "https://i.imgur.com/M0WMDXm.png", url: P + "https://ca-rt.onetv.app/gemseries/index-0.m3u8?token=onetv202" },
+            { id: "ch97", name: "Gem Series  +", category: "ent", logo: "https://gemgroup.tv/assets/images/channels/icon_33.png", url: P + "https://ca-rt.onetv.app/gemseriesplus/index-0.m3u8?token=onetv202" },
+            { id: "ch98", name: "Gem River", category: "ent", logo: "https://i.imgur.com/yJ6f1B6.png", url: P + "https://ca-rt.onetv.app/gemriver/index-0.m3u8?token=onetv202" },
+            { id: "ch99", name: "Gem River  +", category: "ent", logo: "https://gemgroup.tv/assets/images/channels/icon_29.png", url: P + "https://ca-rt.onetv.app/gemriverplus/index-0.m3u8?token=onetv202" },
+            { id: "ch100", name: "Gem Classic", category: "ent", logo: "https://i.imgur.com/25BhuOf.png", url: P + "https://ca-rt.onetv.app/gemclassic/index-0.m3u8?token=onetv202" },
+            { id: "ch106", name: "Gem Rubix +", category: "ent", logo: "https://gemgroup.tv/assets/images/channels/icon_31.png", url: P + "https://ca-rt.onetv.app/gemrubixplus/index-0.m3u8?token=onetv202" },
+	{ id: "ch_gem_river", name: "Gem River", category: "ent", logo: "https://i.imgur.com/yJ6f1B6.png", url: "https://namakade.com/livetvs/RIVER", type: "iframe", crop: true },
+{ id: "ch_gem_sport", name: "Gem Sport", category: "sports", logo: "https://www.persianity.com/thumb.php?w=900&h=506&src=https://www.irtv.website/index_files/channels/gemsport.png", url: "https://namakade.com/livetvs/GEM%20SPORT", type: "iframe", crop: true },
+
+
+     
+
+
+
+        ];
+        let favorites = JSON.parse(localStorage.getItem('ronika_favs')) || [];
+        let activeUrl = "";
+        let currentCategory = "all";
+        let currentFilteredList = myChannels; 
+
+        const container = document.getElementById('channels-container');
+        const fsChannelsContainer = document.getElementById('fs-channels-container');
+        const channelTitle = document.getElementById('current-channel-name');
+        const fsChannelTitle = document.getElementById('fs-channel-title');
+        const loader = document.getElementById('loader');
+        const video = document.getElementById('video');
+        const iframePlayer = document.getElementById('iframe-player');
+        let hls;
+
+
+
+	// تابع اسکرول خودکار برای تلویزیون هوشمند
+function makeScrollableOnFocus() {
+    document.querySelectorAll('.tab-btn, .channel-item, .fs-channel-card').forEach(el => {
+        // اضافه کردن قابلیت فوکوس
+        el.setAttribute('tabindex', '0');
+        
+        // وقتی با کنترل تلویزیون روی این آیتم آمدیم، خودش را وسط صفحه بیاورد
+        el.addEventListener('focus', function() {
+            this.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        });
+        
+        // با زدن دکمه OK/Enter روی کنترل، کلیک شبیه‌سازی شود
+        el.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter') {
+                this.click();
+            }
+        });
+    });
+}
+
+        function renderChannels(list) {
+            currentFilteredList = list;
+            container.innerHTML = '';
+            fsChannelsContainer.innerHTML = '';
+
+            // --- آپدیت تعداد کانال‌ها و تنظیم زبان کلمه کانال ---
+            const chWord = currentLang === 'en' ? 'Channels' : 'کەناڵ';
+            const countBadge = document.getElementById('total-count');
+            if (countBadge) {
+                countBadge.parentElement.innerHTML = `<span id="total-count">${list.length}</span> <span id="channel-word">${chWord}</span>`;
+            }
+            // ----------------------------------------------------
+
+            if(list.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#8b95a5;">هیچ کەناڵێک نییە</div>';
+                return;
+            }
+
+            list.forEach(channel => {
+                const isFav = favorites.includes(channel.id);
+                
+                const div = document.createElement('div');
+                div.className = 'channel-item';
+                div.dataset.id = channel.id; 
+                if(channel.url === activeUrl) div.classList.add('active');
+                div.innerHTML = `
+                    <div class="channel-logo-wrapper"><img class="channel-logo" src="${channel.logo}"></div>
+                    <div class="channel-name">${channel.name}</div>
+                    <button class="fav-btn ${isFav ? 'favorited' : ''}" onclick="toggleFav(event, '${channel.id}')">${isFav ? '❤️' : '🤍'}</button>
+                `;
+                div.onclick = () => playChannel(channel);
+                container.appendChild(div);
+
+                const fsCard = document.createElement('div');
+                fsCard.className = 'fs-channel-card';
+                fsCard.dataset.id = channel.id;
+                if(channel.url === activeUrl) fsCard.classList.add('active');
+                fsCard.innerHTML = `
+                    <img class="fs-card-logo" src="${channel.logo}">
+                    <span class="fs-card-name">${channel.name}</span>
+                `;
+                fsCard.onclick = (e) => {
+                    e.stopPropagation(); 
+                    playChannel(channel);
+                    resetFsTimer();
+                };
+                fsChannelsContainer.appendChild(fsCard);
+            });
+            makeScrollableOnFocus();
+        }
+
+        function updateActiveChannelUI(id) {
+            document.querySelectorAll('.channel-item, .fs-channel-card').forEach(el => {
+                el.classList.toggle('active', el.dataset.id === id);
+            });
+        }
+
+        function toggleFav(e, id) {
+            e.stopPropagation();
+            favorites.includes(id) ? favorites = favorites.filter(i => i !== id) : favorites.push(id);
+            localStorage.setItem('ronika_favs', JSON.stringify(favorites));
+            filterChannels(currentCategory);
+        }
+
+        function filterChannels(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            const activeTab = document.getElementById('tab-' + cat);
+            if(activeTab) activeTab.classList.add('active');
+            
+            let filtered = cat === 'all' ? myChannels : (cat === 'fav' ? myChannels.filter(c => favorites.includes(c.id)) : myChannels.filter(c => c.category === cat));
+            let term = document.getElementById('search-input').value.toLowerCase();
+            if(term) filtered = filtered.filter(c => c.name.toLowerCase().includes(term));
+            renderChannels(filtered);
+        }
+
+        function searchChannels() { filterChannels(currentCategory); }
+
+        video.addEventListener('waiting', () => loader.style.display = 'block');
+        video.addEventListener('playing', () => loader.style.display = 'none');
+
+        function playChannel(channel) {
+            activeUrl = channel.url;
+            const safeUrl = decodeUrl(channel.url);
+
+            channelTitle.innerText = channel.name;
+            fsChannelTitle.innerText = channel.name; 
+
+            // --- پاک کردن خودکار کادر جستجو ---
+            const searchInput = document.getElementById('search-input');
+            if (searchInput.value !== '') {
+                searchInput.value = ''; 
+                filterChannels(currentCategory); 
+            }
+
+            updateActiveChannelUI(channel.id); 
+
+            // --- کد جدید: پیدا کردن جای دقیق کانال در لیست و اسکرول به آن ---
+            setTimeout(() => {
+                const activeItem = document.querySelector(`.channel-item[data-id="${channel.id}"]`);
+                if (activeItem) {
+                    // لیست را جابجا می‌کند تا کانال انتخابی دقیقاً در مرکز دید قرار بگیرد
+                    activeItem.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            }, 50); // یک تأخیر 50 میلی‌ثانیه‌ای تا مطمئن شویم لیست کامل ساخته شده است
+            // ---------------------------------------------------------------
+
+            loader.style.display = 'block'; 
+            document.getElementById('quality-selector').style.display = 'none';
+            document.getElementById('fs-quality-selector').style.display = 'none';
+
+            if (hls) hls.destroy(); 
+            video.pause();
+
+           if (channel.type === "iframe") {
+                video.style.display = 'none';
+                iframePlayer.style.display = 'block';
+                iframePlayer.src = safeUrl;
+                loader.style.display = 'none';
+                
+                // سیستم هوشمند فعال‌سازی برش قاب
+                if (channel.crop === true) {
+                    iframePlayer.classList.add('cropped-mode');
+                } else {
+                    iframePlayer.classList.remove('cropped-mode');
+                }
+                
+            } else {
+                // اگر کانال عادی بود، هم Iframe مخفی می‌شه و هم زوم لغو می‌شه
+                iframePlayer.style.display = 'none';
+                iframePlayer.classList.remove('cropped-mode');
+                iframePlayer.src = "";
+                iframePlayer.src = "";
+                video.style.display = 'block';
+
+                if (Hls.isSupported()) {
+                    hls = new Hls({ maxBufferLength: 10, liveSyncDurationCount: 3 });
+                    hls.loadSource(safeUrl);
+                    hls.attachMedia(video);
+
+                    hls.on(Hls.Events.MANIFEST_PARSED, (e, data) => {
+                        video.play();
+                        video.setAttribute("controls", "controls");
+                        setupQuality(data.levels);
+                    });
+
+                    hls.on(Hls.Events.ERROR, (e, data) => {
+                        if (data.fatal) {
+                            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                                
+                                // --- سیستم هوشمند جستجوی سرور تلوبیون ---
+                                if (safeUrl.includes("telewebion.ir")) {
+                                    let currentServerMatch = safeUrl.match(/live-azd(\d+)/);
+                                    if (currentServerMatch) {
+                                        let currentNum = parseInt(currentServerMatch[1]);
+                                        // اگر از 1109 بیشتر شد برگردد به 1101
+                                        let nextNum = currentNum >= 1109 ? 1101 : currentNum + 1;
+                                        
+                                        safeUrl = safeUrl.replace(`live-azd${currentNum}`, `live-azd${nextNum}`);
+                                        hls.loadSource(safeUrl);
+                                        hls.startLoad();
+                                        return;
+                                    }
+                                }
+                                // ------------------------------------------
+
+                                hls.startLoad(); 
+                            }
+                            else { 
+                                hls.destroy(); 
+                                loader.style.display = 'none'; 
+                            }
+                        }
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = safeUrl;
+                    video.setAttribute("controls", "controls");
+                    video.play();
+                }
+            }
+        }
+
+        function setupQuality(levels) {
+            const sel1 = document.getElementById('quality-selector');
+            const sel2 = document.getElementById('fs-quality-selector');
+            if (levels.length > 1) {
+                let html = '<option value="-1">Auto</option>';
+                levels.forEach((l, i) => html += `<option value="${i}">${l.height}p</option>`);
+                sel1.innerHTML = html; sel2.innerHTML = html;
+                sel1.style.display = 'block'; sel2.style.display = 'block';
+            } else {
+                sel1.style.display = 'none'; sel2.style.display = 'none';
+            }
+        }
+
+        function changeQuality(val) { 
+            if(hls) hls.currentLevel = parseInt(val); 
+            document.getElementById('quality-selector').value = val;
+            document.getElementById('fs-quality-selector').value = val;
+            resetFsTimer();
+        }
+
+        // سیستم جدید و چندگانه Fit Screen
+        const fitModes = ['contain', 'cover', 'fill'];
+        const fitLabels = ['Aspect: Fit', 'Aspect: Crop', 'Aspect: Stretch'];
+        let currentFitIndex = 0;
+
+// سیستم هوشمند تصویر در تصویر (PiP)
+async function togglePiP() {
+    // بررسی اینکه آیا مرورگر/گوشی از این قابلیت پشتیبانی می‌کند یا خیر
+    if (!document.pictureInPictureEnabled) {
+        alert(currentLang === 'ku' ? "ببورە، مۆبایلەکەت پشتگیری ئەم تایبەتمەندییە ناکات!" : "Sorry, your device doesn't support Picture-in-Picture!");
+        return;
+    }
+
+    // بررسی اینکه آیا کانال از نوع Iframe است (چون PiP روی سایت‌های واسطه کار نمی‌کند)
+    if (iframePlayer.style.display === 'block') {
+        alert(currentLang === 'ku' ? "ئەم تایبەتمەندییە بۆ ئەم کەناڵە کار ناکات." : "PiP is not supported for this specific channel.");
+        return;
+    }
+
+    try {
+        // اگر ویدیو در حالت PiP است، آن را ببند؛ در غیر این صورت بازش کن
+        if (document.pictureInPictureElement) {
+            await document.exitPictureInPicture();
+        } else {
+            await video.requestPictureInPicture();
+        }
+    } catch (error) {
+        console.error("PiP Error:", error);
+    }
+}
+
+        function toggleFit() { 
+            currentFitIndex = (currentFitIndex + 1) % fitModes.length;
+            video.style.objectFit = fitModes[currentFitIndex];
+            document.getElementById('fs-fit-btn').innerText = fitLabels[currentFitIndex];
+            resetFsTimer();
+        }
+
+        // کنترل‌های فول اسکرین
+        const targetFS = document.getElementById('video-wrapper');
+        const clickOverlay = document.getElementById('click-overlay');
+        const fsUiElements = document.querySelectorAll('.fs-ui');
+        let uiTimeout;
+
+        function enterFS() {
+            document.body.classList.add('pseudo-fs-active'); // مخفی کردن هدر و سایدبار
+            clickOverlay.style.display = 'block'; 
+            resetFsTimer();
+            if(video.hasAttribute("controls")) video.removeAttribute("controls");
+        }
+
+        function exitFS() {
+            document.body.classList.remove('pseudo-fs-active'); // برگرداندن هدر و سایدبار
+            fsUiElements.forEach(el => el.classList.remove('active'));
+            video.setAttribute("controls", "controls"); 
+            clickOverlay.style.display = 'none';
+            try { if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e) {}
+        }
+
+        function toggleCustomFullscreen() {
+            if (!document.fullscreenElement && !targetFS.classList.contains('pseudo-fs')) {
+                // تلاش برای فول اسکرین واقعی
+                if (targetFS.requestFullscreen) {
+                    targetFS.requestFullscreen().then(() => enterFS()).catch(() => {
+                        targetFS.classList.add('pseudo-fs');
+                        enterFS();
+                    });
+                } else if (targetFS.webkitRequestFullscreen) {
+                    targetFS.webkitRequestFullscreen();
+                } else {
+                    targetFS.classList.add('pseudo-fs');
+                    enterFS();
+                }
+                try { screen.orientation.lock('landscape').catch(e=>{}); } catch(e) {}
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else {
+                    targetFS.classList.remove('pseudo-fs');
+                    exitFS();
+                }
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) exitFS();
+            else enterFS();
+        });
+
+        // سیستم هوشمند چرخش گوشی (ورود و خروج اتوماتیک به فول‌اسکرین)
+        window.addEventListener("orientationchange", function() {
+            setTimeout(() => {
+                if(window.orientation === 90 || window.orientation === -90) {
+                    if (!document.fullscreenElement && !targetFS.classList.contains('pseudo-fs')) {
+                        toggleCustomFullscreen(); // ورود اتوماتیک
+                    }
+                } else {
+                    if (targetFS.classList.contains('pseudo-fs')) {
+                        toggleCustomFullscreen(); // خروج اتوماتیک
+                    }
+                }
+            }, 200);
+        });
+
+        clickOverlay.addEventListener('click', (e) => {
+            if(document.fullscreenElement || targetFS.classList.contains('pseudo-fs')) {
+                resetFsTimer();
+                if(video.hasAttribute("controls")) video.removeAttribute("controls");
+                else video.setAttribute("controls", "controls");
+            } else {
+                if(video.paused) video.play(); else video.pause();
+            }
+        });
+
+        function resetFsTimer() {
+            fsUiElements.forEach(el => el.classList.add('active'));
+            clearTimeout(uiTimeout);
+            uiTimeout = setTimeout(() => {
+                fsUiElements.forEach(el => el.classList.remove('active'));
+            }, 4000);
+        }
+
+        const fsFooter = document.getElementById('fs-footer');
+        fsFooter.addEventListener('touchstart', () => clearTimeout(uiTimeout), {passive: true});
+        fsFooter.addEventListener('touchmove', () => clearTimeout(uiTimeout), {passive: true});
+        fsFooter.addEventListener('touchend', resetFsTimer);
+        fsFooter.addEventListener('mouseenter', () => clearTimeout(uiTimeout));
+        fsFooter.addEventListener('mouseleave', resetFsTimer);
+
+        const uiText = {
+    ku: { label: "خەریکی بینینی", noSelect: "تکایە کەناڵێک هەڵبژێرە", all: "🌐 هەموو", news: "📰 هەواڵ", ent: "📺 کات بەسەربردن", movie: "🍿 فیلم", kids: "👶 منداڵان", doc: "🌍 دۆکیۆمێنتاری", sports: "⚽ وەرزش", fav: "⭐ دڵخواز", music: "🎵 میوزیک", install: "📥 دابەزاندن", search: "🔍 گەڕان بۆ کەناڵ...", lang: "EN" },
+    en: { label: "NOW PLAYING", noSelect: "Select a channel", all: "🌐 All", news: "📰 News", ent: "📺 Entertainment", movie: "🍿 Movies", kids: "👶 Kids", doc: "🌍 Documentary", sports: "⚽ Sports", fav: "⭐ Favs", music: "🎵 Music", install: "📥 Install", search: "🔍 Search...", lang: "KU" }
+};
+
+        let currentLang = 'ku';
+        function toggleLanguage() {
+            currentLang = currentLang === 'ku' ? 'en' : 'ku';
+            const t = uiText[currentLang];
+            document.documentElement.dir = currentLang === 'ku' ? 'rtl' : 'ltr';
+            document.getElementById('label-playing').innerText = t.label;
+            if(activeUrl === "") channelTitle.innerText = t.noSelect;
+            document.getElementById('tab-all').innerText = t.all;
+            document.getElementById('tab-news').innerText = t.news;
+            document.getElementById('tab-ent').innerText = t.ent;
+            document.getElementById('tab-movie').innerText = t.movie;
+            document.getElementById('tab-kids').innerText = t.kids;
+            document.getElementById('tab-doc').innerText = t.doc;
+            document.getElementById('tab-sports').innerText = t.sports;
+            document.getElementById('tab-fav').innerText = t.fav;
+            document.getElementById('tab-music').innerText = t.music;
+            document.getElementById('install-btn').innerText = t.install;
+            document.getElementById('search-input').placeholder = t.search;
+            document.getElementById('lang-btn').innerText = t.lang;
+            
+            // --- تغییر ترجمه کلمه کانال با زدن دکمه تغییر زبان ---
+            const channelWordEl = document.getElementById('channel-word');
+            if (channelWordEl) {
+                channelWordEl.innerText = currentLang === 'en' ? 'Channels' : 'کەناڵ';
+            }
+            // ----------------------------------------------------
+        }
+
+        renderChannels(myChannels);
+
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt !== null) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') { installBtn.style.display = 'none'; }
+                deferredPrompt = null;
+            }
+        });
+
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+    </script>
 </body>
 </html>
